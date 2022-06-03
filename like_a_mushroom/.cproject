@@ -30,6 +30,7 @@
 								<option defaultValue="gnu.c.debugging.level.max" id="gnu.c.compiler.mingw.exe.debug.option.debugging.level.90921368" name="Debug Level" superClass="gnu.c.compiler.mingw.exe.debug.option.debugging.level" useByScannerDiscovery="false" valueType="enumerated"/>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.c.compiler.option.include.paths.597588604" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;C:\eclipse\eclipse\SDL2-devel-2.0.22-mingw\SDL2-2.0.22\i686-w64-mingw32\include\SDL2&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\eclipse\eclipse\SDL2_mixer-devel-2.0.4-mingw\SDL2_mixer-2.0.4\i686-w64-mingw32\include\SDL2&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;C:\eclipse\eclipse\SDL2_image-devel-2.0.5-mingw\SDL2_image-2.0.5\i686-w64-mingw32\include\SDL2&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.165148841" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
@@ -37,6 +38,7 @@
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.mingw.exe.debug.136443058" name="MinGW C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.mingw.exe.debug">
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.c.link.option.paths.845094231" name="Library search path (-L)" superClass="gnu.c.link.option.paths" useByScannerDiscovery="false" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;C:\eclipse\eclipse\SDL2-devel-2.0.22-mingw\SDL2-2.0.22\i686-w64-mingw32\lib&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\eclipse\eclipse\SDL2_mixer-devel-2.0.4-mingw\SDL2_mixer-2.0.4\i686-w64-mingw32\lib&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;C:\eclipse\eclipse\SDL2_image-devel-2.0.5-mingw\SDL2_image-2.0.5\i686-w64-mingw32\lib&quot;"/>
 								</option>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.c.link.option.libs.667233445" name="Libraries (-l)" superClass="gnu.c.link.option.libs" useByScannerDiscovery="false" valueType="libs">
@@ -44,6 +46,7 @@
 									<listOptionValue builtIn="false" value="SDL2main"/>
 									<listOptionValue builtIn="false" value="SDL2"/>
 									<listOptionValue builtIn="false" value="SDL2_image"/>
+									<listOptionValue builtIn="false" value="SDL2_mixer"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.linker.input.566841815" superClass="cdt.managedbuild.tool.gnu.c.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
