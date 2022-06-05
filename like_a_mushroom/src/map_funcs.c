@@ -8,6 +8,7 @@
 
 void addObjInMap(Map *map, Obj *obj)
 {
+	obj->map = map;
 	if(obj->box.x < 0) obj->box.x = 0;
 	if(obj->box.x > (map->width*BLOCK_SIZE - obj->box.w)) obj->box.x = (map->width*BLOCK_SIZE - obj->box.w);
 	if(obj->box.y < 0) obj->box.y = 0;
@@ -28,6 +29,7 @@ void addObjInMap(Map *map, Obj *obj)
 
 void delObjFromMap(Map *map, Obj *obj)
 {
+	obj->map = NULL;
 	for(int y = obj->box.y; y <= (obj->box.y + obj->box.h - 1); y += BLOCK_SIZE)
 		{
 			for(int x = obj->box.x; x <= (obj->box.x + obj->box.w - 1); x += BLOCK_SIZE)
@@ -44,7 +46,7 @@ void delObjFromMap(Map *map, Obj *obj)
 }
 
 
-void moveObj(Map *map, Obj *obj, int dx, int dy)
+void moveObjOnMap(Map *map, Obj *obj, int dx, int dy)
 {
 	delObjFromMap(map, obj);
 	obj->box.x += dx;

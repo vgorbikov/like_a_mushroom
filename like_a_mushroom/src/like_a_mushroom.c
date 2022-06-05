@@ -90,12 +90,12 @@ int main(int argc, char *argv[]) {
 
 		if(player->x_speed == 1)
 		{
-			moveObj(g_map, player, 1, 0);
+			moveObj(player, 1, 0);
 
 		}
-		if(player->x_speed == -1) moveObj(g_map, player, -1, 0);
-		if(player->y_speed == 1) moveObj(g_map, player, 0, 1);
-		if(player->y_speed == -1) moveObj(g_map, player, 0, -1);
+		if(player->x_speed == -1) moveObj(player, -1, 0);
+		if(player->y_speed == 1) moveObj(player, 0, 1);
+		if(player->y_speed == -1) moveObj(player, 0, -1);
 
 		SDL_RenderClear(rend);
 		SDL_RenderCopy(rend, background, NULL, NULL);

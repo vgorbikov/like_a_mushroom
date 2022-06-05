@@ -20,7 +20,7 @@ void addObjInMap(Map *map, Obj *obj);
 void delObjFromMap(Map *map, Obj *obj);
 
 
-void moveObj(Map *map, Obj *obj, int dx, int dy);
+void moveObjOnMap(Map *map, Obj *obj, int dx, int dy);
 
 
 Map *mapLoad(SDL_Renderer *rend);

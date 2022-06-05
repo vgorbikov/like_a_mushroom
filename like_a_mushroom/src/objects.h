@@ -24,6 +24,7 @@ typedef struct ObjTexture
 typedef struct Object
 {
 	SDL_Rect box;
+	void *map;
 	float x_speed, y_speed, x_boost, y_boost, weight;
 	int type;
 	ObjTex *texture;
@@ -75,6 +76,8 @@ int delObjList(ObjList *list);
 
 
 int objInList(ObjList *list, Obj *obj);
+
+void moveObj(Obj *obj, int dx, int dy);
 
 
 #endif

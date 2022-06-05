@@ -3,7 +3,7 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include "objects.h"
-
+#include "map_funcs.h"
 
 ObjTex *initObjTex(SDL_Renderer *rend, char *path, SDL_Rect *rect)
 {
@@ -119,4 +119,9 @@ int objInList(ObjList *list, Obj *obj)
 	}
 	headObjInList(list);
 	return 0;
+}
+
+void moveObj(Obj *obj, int dx, int dy)
+{
+	moveObjOnMap(obj->map, obj, dx, dy);
 }
