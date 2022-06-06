@@ -14,22 +14,24 @@
 #define TYPE_MONOLITH 0
 #define TYPE_PLAYER 10
 
-typedef struct ObjTexture
+typedef struct ObjAnimation
 {
+	int status;
 	SDL_Texture *texture;
 	SDL_Rect *tex_box;
-}ObjTex;
+	long int start_moment;
+}ObjAnim;
 
 
 typedef struct Object
 {
 	SDL_Rect box;
+	int type;
 	void *map;
 	float x_speed, y_speed, x_boost, y_boost, weight;
-	int type;
-	ObjTex *texture;
-	int status;
 	long int last_time;
+	ObjAnim *animation;
+	int status;
 } Obj;
 
 
@@ -48,10 +50,10 @@ typedef struct Objlist
 }ObjList;
 
 
-ObjTex *initObjTex(SDL_Renderer *rend, char *path, SDL_Rect *rect);
+ObjAnim *initObjAnim(SDL_Renderer *rend, char *path, SDL_Rect *rect);
 
 
-Obj *initObject(SDL_Rect obj_box, ObjTex *tex, float weight, SDL_bool monolith);
+Obj *initObject(SDL_Rect obj_box, ObjAnim *tex, float weight, int type);
 
 
 OLE *initOLE(Obj *obj);
@@ -78,6 +80,8 @@ int delObjList(ObjList *list);
 int objInList(ObjList *list, Obj *obj);
 
 void moveObj(Obj *obj, int dx, int dy);
+
+void setObjAnimation(Obj *obj, int animation_type);
 
 
 #endif

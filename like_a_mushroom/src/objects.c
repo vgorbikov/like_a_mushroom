@@ -1,20 +1,25 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <SDL.h>
 #include <SDL_image.h>
 #include "objects.h"
 #include "map_funcs.h"
+#include "player.h"
 
-ObjTex *initObjTex(SDL_Renderer *rend, char *path, SDL_Rect *rect)
+
+ObjAnim *initObjAnim(SDL_Renderer *rend, char *path, SDL_Rect *rect)
 {
-	ObjTex *obj_tex = malloc(sizeof(ObjTex));
+	ObjAnim *obj_tex = malloc(sizeof(ObjAnim));
 	obj_tex->tex_box = rect;
 	obj_tex->texture = IMG_LoadTexture(rend, path);
+	obj_tex->status = STATIC_STATUS;
+	obj_tex->start_moment = clock();
 	return obj_tex;
 }
 
 
-Obj *initObject(SDL_Rect obj_box, ObjTex *tex, float weight, SDL_bool monolith)
+Obj *initObject(SDL_Rect obj_box, ObjAnim *tex, float weight, int type)
 {
 	Obj *new_object = malloc(sizeof(Obj));
 	new_object->box = obj_box;
@@ -23,7 +28,10 @@ Obj *initObject(SDL_Rect obj_box, ObjTex *tex, float weight, SDL_bool monolith)
 	new_object->x_boost = 0;
 	new_object->y_speed = 0;
 	new_object->y_boost = 0;
-	new_object->texture = tex;
+	new_object->animation = tex;
+	new_object->last_time = clock();
+	new_object->status = STATIC_STATUS;
+	new_object->type = type;
 	return new_object;
 }
 
@@ -125,3 +133,15 @@ void moveObj(Obj *obj, int dx, int dy)
 {
 	moveObjOnMap(obj->map, obj, dx, dy);
 }
+
+
+void setObjAnimation(Obj *obj, int animation_type)
+{
+	if(obj->animation->status != animation_type)
+	{
+		obj->animation->status = animation_type;
+		obj->animation->start_moment = clock();
+	}
+}
+
+

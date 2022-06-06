@@ -14,6 +14,7 @@
 #include <SDL_image.h>
 #include "objects.h"
 #include "map_funcs.h"
+#include "player.h"
 
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
@@ -54,7 +55,7 @@ int main(int argc, char *argv[]) {
 	pTexBox.y = 0;
 	pTexBox.w = 100;
 	pTexBox.h = 100;
-	ObjTex *playerTex = initObjTex(rend, "textures/player_anim.png", &pTexBox);
+	ObjAnim *playerTex = initObjAnim(rend, "textures/player_anim.png", &pTexBox);
 	SDL_Rect playerBox;
 	playerBox.x = 0;
 	playerBox.y = 0;
@@ -80,8 +81,10 @@ int main(int argc, char *argv[]) {
 					if(event.key.keysym.sym == SDLK_LEFT) player->x_speed = -1;
 					if(event.key.keysym.sym == SDLK_UP) player->y_speed = -1;
 					if(event.key.keysym.sym == SDLK_DOWN) player->y_speed = 1;
+					setObjAnimation(player, RUN_STATUS);
 					break;
 				case SDL_KEYUP:
+					setObjAnimation(player, STATIC_STATUS);
 					player->x_speed = 0;
 					player->y_speed = 0;
 					break;
@@ -97,6 +100,9 @@ int main(int argc, char *argv[]) {
 		if(player->y_speed == 1) moveObj(player, 0, 1);
 		if(player->y_speed == -1) moveObj(player, 0, -1);
 
+		if(player->animation->status == RUN_STATUS) updateRunAnim(player);
+		if(player->animation->status == STATIC_STATUS) updateStaticAnim(player);
+
 		SDL_RenderClear(rend);
 		SDL_RenderCopy(rend, background, NULL, NULL);
 		//printf("Start render\n");
@@ -110,7 +116,7 @@ int main(int argc, char *argv[]) {
 				{
 					if(objInList(writed, g_map->tiles[i*g_map->width + j].current->object) == 0)
 					{
-						SDL_RenderCopy(rend, g_map->tiles[i*g_map->width + j].current->object->texture->texture, g_map->tiles[i*g_map->width + j].current->object->texture->tex_box, &g_map->tiles[i*g_map->width + j].current->object->box);
+						SDL_RenderCopy(rend, g_map->tiles[i*g_map->width + j].current->object->animation->texture, g_map->tiles[i*g_map->width + j].current->object->animation->tex_box, &g_map->tiles[i*g_map->width + j].current->object->box);
 						addObjInList(writed, g_map->tiles[i*g_map->width + j].current->object);
 					}
 					nextObjInList(&g_map->tiles[i*g_map->width + j]);

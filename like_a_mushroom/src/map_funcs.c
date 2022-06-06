@@ -98,8 +98,8 @@ Map *mapLoad(SDL_Renderer *rend)
 				block_box.y = i*BLOCK_SIZE;
 				block_box.h = BLOCK_SIZE;
 				block_box.w = BLOCK_SIZE;
-				ObjTex *tex = initObjTex(rend, path, NULL);
-				Obj *block = initObject(block_box, tex, 1, SDL_TRUE);
+				ObjAnim *tex = initObjAnim(rend, path, NULL);
+				Obj *block = initObject(block_box, tex, 1, TYPE_MONOLITH);
 				//printf("block %i\n", i*new_map->width+j);
 				addObjInMap(new_map, block);
 			}
