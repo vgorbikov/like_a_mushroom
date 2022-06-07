@@ -14,6 +14,8 @@ ObjAnim *initObjAnim(SDL_Renderer *rend, char *path, SDL_Rect *rect)
 	obj_tex->tex_box = rect;
 	obj_tex->texture = IMG_LoadTexture(rend, path);
 	obj_tex->status = STATIC_STATUS;
+	obj_tex->angle = 0;
+	obj_tex->flip = SDL_FLIP_NONE;
 	obj_tex->start_moment = clock();
 	return obj_tex;
 }
@@ -29,7 +31,8 @@ Obj *initObject(SDL_Rect obj_box, ObjAnim *tex, float weight, int type)
 	new_object->y_speed = 0;
 	new_object->y_boost = 0;
 	new_object->animation = tex;
-	new_object->last_time = clock();
+	new_object->last_xmove = clock();
+	new_object->last_ymove = clock();
 	new_object->status = STATIC_STATUS;
 	new_object->type = type;
 	return new_object;
@@ -97,7 +100,7 @@ int delObjFromList(ObjList *list)
 		if(list->current->next != NULL) list->current->next->prev = list->current->prev;
 		if(list->current == list->head) list->head = list->current->next;
 		OLE *new_cur = list->current->next;
-		if(list->current != NULL) free(list->current);
+		free(list->current);
 		list->current = new_cur;
 	//printf("Deep deleting Done\n");
 	}
@@ -129,11 +132,6 @@ int objInList(ObjList *list, Obj *obj)
 	return 0;
 }
 
-void moveObj(Obj *obj, int dx, int dy)
-{
-	moveObjOnMap(obj->map, obj, dx, dy);
-}
-
 
 void setObjAnimation(Obj *obj, int animation_type)
 {
@@ -145,3 +143,103 @@ void setObjAnimation(Obj *obj, int animation_type)
 }
 
 
+/**
+ * Вычисляет перемещение объекта с момента отрисовки последнего кадра
+ */
+int movingCalculator(Obj *obj)
+{
+	long int time = clock();
+	float tempxdt = (time - obj->last_xmove);
+	float xdt = tempxdt/1000;
+	if(!((xdt*obj->x_speed < 1) & (xdt*obj->x_speed > -1) & (obj->x_speed != 0)))
+	{
+		obj->moving.x = obj->x_speed*xdt + obj->x_boost*xdt*xdt/2;
+		obj->last_xmove = clock();
+	}
+
+
+	float tempydt = (time - obj->last_ymove);
+	float ydt = tempydt/1000;
+	if(!((ydt*obj->y_speed < 1) & (ydt*obj->y_speed > -1) & (obj->y_speed != 0)))
+	{
+		obj->moving.y = obj->y_speed*ydt + obj->y_boost*ydt*ydt/2;
+		obj->last_ymove = clock();
+	}
+	return 0;
+}
+
+
+/**
+ * Применяет заданное объекту перемещение
+ */
+void moveObj(Obj *obj)
+{
+	moveObjOnMap(obj->map, obj, obj->moving.x, obj->moving.y);
+	obj->moving.x = 0;
+	obj->moving.y = 0;
+}
+
+
+/**
+ * Возвращает список объектов поблизости
+ * (от объекта, передаваемого в качестве аргумента)
+ */
+ObjList *objectsNearby(Obj *obj)
+{
+	Map *map = obj->map;
+	ObjList *nearby = initObjList();
+	int dx = obj->box.w/(obj->box.w/BLOCK_SIZE);
+	int dy = obj->box.h/(obj->box.h/BLOCK_SIZE);
+	for(int y = obj->box.y; y <= (obj->box.y + obj->box.h); y += dy)
+	{
+		if(y == (obj->box.y + obj->box.h)) y = (obj->box.y + obj->box.h - 1);
+		for(int x = obj->box.x; x <= (obj->box.x + obj->box.w); x += dx)
+		{
+			if(x == (obj->box.x + obj->box.w)) x = (obj->box.x + obj->box.w - 1);
+			int fx = x/BLOCK_SIZE;
+			int fy = y/BLOCK_SIZE;
+			headObjInList(&map->tiles[map->width*fy + fx]);
+			while(map->tiles[map->width*fy + fx].current != NULL)
+			{
+				if((map->tiles[map->width*fy + fx].current->object != obj)&(!objInList(nearby, map->tiles[map->width*fy + fx].current->object)))
+				{
+					addObjInList(nearby, map->tiles[map->width*fy + fx].current->object);
+				}
+				nextObjInList(&map->tiles[map->width*fy + fx]);
+			}
+		}
+	}
+	return nearby;
+}
+
+
+/**
+ * Возвращает пересечение двух объектов, если оно есть
+ * В противном случае NULL
+ */
+SDL_Rect *touchingCalculator(Obj *obj1, Obj *obj2)
+{
+	SDL_Rect *result = malloc(sizeof(SDL_Rect));
+	if(SDL_IntersectRect(&obj1->box, &obj2->box, result) == SDL_FALSE) return NULL;
+	return result;
+}
+
+
+//void touchingDetector(Map *map)
+//{
+//	for(int i=0;i<map->height;i++)
+//	{
+//		for(int j=0;j<map->width;j++)
+//		{
+//			ObjList *tile = &map->tiles[map->width + j];
+//			headObjInList(&map->tiles[i*map->width + j]);
+//			while(tile->current != NULL)
+//			{
+//				Obj *curObj = tile->current->object;
+//
+//				nextObjInList(tile);
+//			}
+//		}
+//	}
+//
+//}

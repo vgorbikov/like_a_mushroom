@@ -32,6 +32,43 @@ SDL_Window *initWindow(int WIDTH, int HEIGHT)
 	return window;
 }
 
+#define BUTTON_PRESSED 1
+#define BUTTON_UNPRESSED 0
+
+typedef struct Button
+{
+	SDL_Keycode code;
+	int status;
+} Button;
+
+
+SDL_bool controlHandler(Obj *player)
+{
+	SDL_Event event;
+	while (SDL_PollEvent(&event))
+	{
+		switch (event.type)
+		{
+			case SDL_QUIT:
+				return SDL_TRUE;
+				break;
+			case SDL_KEYDOWN:
+				if(event.key.keysym.sym == SDLK_RIGHT) run(player, 500);
+				if(event.key.keysym.sym == SDLK_LEFT) run(player, -500);
+				if(event.key.keysym.sym == SDLK_UP) player->y_speed = -500;
+				if(event.key.keysym.sym == SDLK_DOWN) player->y_speed = 500;
+				setObjAnimation(player, RUN_STATUS);
+				break;
+			case SDL_KEYUP:
+				setObjAnimation(player, STATIC_STATUS);
+				player->x_speed = 0;
+				player->y_speed = 0;
+				break;
+		}
+	}
+	return SDL_FALSE;
+}
+
 
 int main(int argc, char *argv[]) {
 
@@ -41,7 +78,6 @@ int main(int argc, char *argv[]) {
 	SDL_Window *window = initWindow(SCREEN_WIDTH, SCREEN_HEIGHT);
 	SDL_Renderer *rend = NULL;
 	SDL_Texture *background = NULL;
-	SDL_bool loopShouldStop = SDL_FALSE;
 
 
 	rend = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
@@ -57,8 +93,8 @@ int main(int argc, char *argv[]) {
 	pTexBox.h = 100;
 	ObjAnim *playerTex = initObjAnim(rend, "textures/player_anim.png", &pTexBox);
 	SDL_Rect playerBox;
-	playerBox.x = 0;
-	playerBox.y = 0;
+	playerBox.x = 20;
+	playerBox.y = 16;
 	playerBox.h = 50;
 	playerBox.w = 50;
 
@@ -66,40 +102,43 @@ int main(int argc, char *argv[]) {
 	addObjInMap(g_map, player);
 
 
-	while (!loopShouldStop)
+	while (!controlHandler(player))
 	{
-		SDL_Event event;
-		while (SDL_PollEvent(&event))
-		{
-			switch (event.type)
-			{
-				case SDL_QUIT:
-					loopShouldStop = SDL_TRUE;
-					break;
-				case SDL_KEYDOWN:
-					if(event.key.keysym.sym == SDLK_RIGHT) player->x_speed = 1;
-					if(event.key.keysym.sym == SDLK_LEFT) player->x_speed = -1;
-					if(event.key.keysym.sym == SDLK_UP) player->y_speed = -1;
-					if(event.key.keysym.sym == SDLK_DOWN) player->y_speed = 1;
-					setObjAnimation(player, RUN_STATUS);
-					break;
-				case SDL_KEYUP:
-					setObjAnimation(player, STATIC_STATUS);
-					player->x_speed = 0;
-					player->y_speed = 0;
-					break;
-			}
-		}
 
-		if(player->x_speed == 1)
-		{
-			moveObj(player, 1, 0);
+		movingCalculator(player);
+		moveObj(player);
+		//if(objectsNearby(player) != 0) printf("Nearby: %i\n", objectsNearby(player));
 
-		}
-		if(player->x_speed == -1) moveObj(player, -1, 0);
-		if(player->y_speed == 1) moveObj(player, 0, 1);
-		if(player->y_speed == -1) moveObj(player, 0, -1);
-
+//		ObjList *nearby = objectsNearby(player);
+//		headObjInList(nearby);
+//		while(nearby->current != NULL)
+//		{
+//			SDL_bool intersec = SDL_HasIntersection(&player->box, &nearby->current->object->box);
+//			if(intersec != SDL_FALSE)
+//			{
+//				int dx, dy;
+//				if(player->box.x < nearby->current->object->box.x)
+//				{
+//					dx = player->box.w - (nearby->current->object->box.x - player->box.x);
+//				}
+//				else
+//				{
+//					dx = nearby->current->object->box.w - (player->box.x - nearby->current->object->box.x);
+//				}
+//				if(player->box.y < nearby->current->object->box.y)
+//				{
+//					dy = player->box.h - (nearby->current->object->box.y - player->box.y);
+//				}
+//				else
+//				{
+//					dy = nearby->current->object->box.h - (player->box.y - nearby->current->object->box.y);
+//				}
+//				printf("Moving...\n");
+//				moveObjOnMap(g_map, player, dx, dy);
+//				printf("Moving Done\n");
+//			}
+//		}
+//		free(nearby);
 		if(player->animation->status == RUN_STATUS) updateRunAnim(player);
 		if(player->animation->status == STATIC_STATUS) updateStaticAnim(player);
 
@@ -116,7 +155,9 @@ int main(int argc, char *argv[]) {
 				{
 					if(objInList(writed, g_map->tiles[i*g_map->width + j].current->object) == 0)
 					{
-						SDL_RenderCopy(rend, g_map->tiles[i*g_map->width + j].current->object->animation->texture, g_map->tiles[i*g_map->width + j].current->object->animation->tex_box, &g_map->tiles[i*g_map->width + j].current->object->box);
+						OLE *current_OLE = g_map->tiles[i*g_map->width + j].current;
+						SDL_RenderCopyEx(rend, current_OLE->object->animation->texture, current_OLE->object->animation->tex_box,
+								&current_OLE->object->box, current_OLE->object->animation->angle, NULL, current_OLE->object->animation->flip);
 						addObjInList(writed, g_map->tiles[i*g_map->width + j].current->object);
 					}
 					nextObjInList(&g_map->tiles[i*g_map->width + j]);

@@ -14,27 +14,45 @@
 #define TYPE_MONOLITH 0
 #define TYPE_PLAYER 10
 
+
+/**
+ * Описывает параметры текущей анимации объекта
+ */
 typedef struct ObjAnimation
 {
 	int status;
 	SDL_Texture *texture;
 	SDL_Rect *tex_box;
+	int angle;
+	SDL_RendererFlip flip;
 	long int start_moment;
 }ObjAnim;
 
 
+
+/**
+ * Хранит всю информацию о состоянии объекта
+ * Скорость указывается в пикселях в секунду
+ */
 typedef struct Object
 {
 	SDL_Rect box;
 	int type;
 	void *map;
 	float x_speed, y_speed, x_boost, y_boost, weight;
-	long int last_time;
+	long int last_xmove, last_ymove;
+	SDL_Point moving;
 	ObjAnim *animation;
 	int status;
 } Obj;
 
 
+
+/**
+ * Элемент-"обёртка" для объектов в списке.
+ * Нужен в основном для того чтобы разгрузить поля струтуры объекта от лишних
+ * указателей и иметь возможность двум разным спискам содержать один и тот же объект
+ */
 typedef struct ObjListElem
 {
 	Obj *object;
@@ -43,6 +61,11 @@ typedef struct ObjListElem
 }OLE;
 
 
+
+/**
+ * Хранит указатели на голову и текущий элемент списка.
+ * Все объекты в списке обёрнуты в структуру ObjListElement
+ */
 typedef struct Objlist
 {
 	OLE *head;
@@ -79,9 +102,14 @@ int delObjList(ObjList *list);
 
 int objInList(ObjList *list, Obj *obj);
 
-void moveObj(Obj *obj, int dx, int dy);
+void moveObj(Obj *obj);
 
 void setObjAnimation(Obj *obj, int animation_type);
 
+int movingCalculator(Obj *obj);
+
+ObjList *objectsNearby(Obj *obj);
+
+SDL_Rect *touchingCalculator(Obj *obj1, Obj *obj2);
 
 #endif
