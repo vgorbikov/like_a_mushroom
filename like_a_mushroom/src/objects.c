@@ -174,7 +174,9 @@ int movingCalculator(Obj *obj)
  */
 void moveObj(Obj *obj)
 {
-	moveObjOnMap(obj->map, obj, obj->moving.x, obj->moving.y);
+//	moveObjOnMap(obj->map, obj, obj->moving.x, obj->moving.y);
+	obj->box.x += obj->moving.x;
+	obj->box.y += obj->moving.y;
 	obj->moving.x = 0;
 	obj->moving.y = 0;
 }

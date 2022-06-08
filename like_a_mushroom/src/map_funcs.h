@@ -23,6 +23,6 @@ void delObjFromMap(Map *map, Obj *obj);
 void moveObjOnMap(Map *map, Obj *obj, int dx, int dy);
 
 
-Map *mapLoad(SDL_Renderer *rend);
+ObjList *mapLoad(SDL_Renderer *rend);
 
 #endif

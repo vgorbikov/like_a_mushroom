@@ -63,11 +63,11 @@ void moveObjOnMap(Map *map, Obj *obj, int dx, int dy)
 }
 
 
-Map *mapLoad(SDL_Renderer *rend)
+ObjList *mapLoad(SDL_Renderer *rend)
 {
 	FILE *map = fopen("maps/binmap.bin", "rb");
 	//SDL_Texture *stone = IMG_LoadTexture(rend, "textures/stone.png");
-	Map *new_map = calloc(1, sizeof(Map));
+	ObjList *new_map = calloc(1, sizeof(ObjList));
 	if (map == NULL) printf("No open\n");
 	else
 	{
@@ -77,10 +77,10 @@ Map *mapLoad(SDL_Renderer *rend)
 
 		fread(width, 2, 1, map);
 		fread(height, 1, 1, map);
-		new_map->height = *height;
-		new_map->width = *width;
-		new_map->tiles = calloc(width[0]*height[0], sizeof(ObjList));
-		printf("Map length: %i \n", new_map->width);
+//		new_map->height = *height;
+//		new_map->width = *width;
+//		new_map->tiles = calloc(width[0]*height[0], sizeof(ObjList));
+//		printf("Map length: %i \n", new_map->width);
 		for(int i=0;i<*height;i++)
 		{
 			for(int j=0;j<*width;j++)
@@ -109,7 +109,7 @@ Map *mapLoad(SDL_Renderer *rend)
 				ObjAnim *tex = initObjAnim(rend, path, NULL);
 				Obj *block = initObject(block_box, tex, 1, TYPE_MONOLITH);
 				//printf("block %i\n", i*new_map->width+j);
-				addObjInMap(new_map, block);
+				addObjInList(new_map, block);
 			}
 		}
 		fclose(map);

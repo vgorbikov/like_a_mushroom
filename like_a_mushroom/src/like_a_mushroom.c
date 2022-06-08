@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
 
 	rend = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 	background = IMG_LoadTexture(rend, "textures/background.bmp");
-	Map *g_map = mapLoad(rend);
+	ObjList *g_map = mapLoad(rend);
 
 
 	//SDL_Texture *pTex = IMG_LoadTexture(rend, "textures/player_anim.png");
@@ -99,7 +99,8 @@ int main(int argc, char *argv[]) {
 	playerBox.w = 50;
 
 	Obj *player = initObject(playerBox, playerTex, 1, SDL_FALSE);
-	addObjInMap(g_map, player);
+//	addObjInMap(g_map, player);
+	addObjInList(g_map, player);
 
 
 	while (!controlHandler(player))
@@ -107,6 +108,37 @@ int main(int argc, char *argv[]) {
 
 		movingCalculator(player);
 		moveObj(player);
+
+		headObjInList(g_map);
+		while(g_map->current != NULL)
+		{
+			Obj *cur_obj = g_map->current->object;
+			if((SDL_HasIntersection(&player->box, &cur_obj->box)&(cur_obj != player)) == SDL_TRUE)
+			{
+				int dy;
+//				if(player->box.x < cur_obj->box.x)
+//				{
+//					dx = player->box.w - (cur_obj->box.x - player->box.x);
+//				}
+//				else
+//				{
+//					dx = cur_obj->box.w - (player->box.x - cur_obj->box.x);
+//				}
+				if(player->box.y < cur_obj->box.y)
+				{
+					dy = (player->box.h - (cur_obj->box.y - player->box.y))*(-1);
+				}
+				else
+				{
+					dy = cur_obj->box.h - (player->box.y - cur_obj->box.y);
+				}
+				//player->box.x += dx;
+				player->box.y += dy;
+			}
+			nextObjInList(g_map);
+
+		}
+
 		//if(objectsNearby(player) != 0) printf("Nearby: %i\n", objectsNearby(player));
 
 //		ObjList *nearby = objectsNearby(player);
@@ -145,27 +177,36 @@ int main(int argc, char *argv[]) {
 		SDL_RenderClear(rend);
 		SDL_RenderCopy(rend, background, NULL, NULL);
 		//printf("Start render\n");
-		ObjList *writed = initObjList();
-		for(int i=0;i<g_map->height;i++)
+		headObjInList(g_map);
+		while(g_map->current != NULL)
 		{
-			for(int j=0;j<g_map->width;j++)
-			{
-				headObjInList(&g_map->tiles[i*g_map->width + j]);
-				while(g_map->tiles[i*g_map->width + j].current != NULL)
-				{
-					if(objInList(writed, g_map->tiles[i*g_map->width + j].current->object) == 0)
-					{
-						OLE *current_OLE = g_map->tiles[i*g_map->width + j].current;
-						SDL_RenderCopyEx(rend, current_OLE->object->animation->texture, current_OLE->object->animation->tex_box,
-								&current_OLE->object->box, current_OLE->object->animation->angle, NULL, current_OLE->object->animation->flip);
-						addObjInList(writed, g_map->tiles[i*g_map->width + j].current->object);
-					}
-					nextObjInList(&g_map->tiles[i*g_map->width + j]);
-				}
-				headObjInList(&g_map->tiles[i*g_map->width + j]);
-			}
+			Obj *cur_obj = g_map->current->object;
+			SDL_RenderCopyEx(rend, cur_obj->animation->texture, cur_obj->animation->tex_box,
+					&cur_obj->box, cur_obj->animation->angle, NULL, cur_obj->animation->flip);
+			nextObjInList(g_map);
+
 		}
-		delObjList(writed);
+//		ObjList *writed = initObjList();
+//		for(int i=0;i<g_map->height;i++)
+//		{
+//			for(int j=0;j<g_map->width;j++)
+//			{
+//				headObjInList(&g_map->tiles[i*g_map->width + j]);
+//				while(g_map->tiles[i*g_map->width + j].current != NULL)
+//				{
+//					if(objInList(writed, g_map->tiles[i*g_map->width + j].current->object) == 0)
+//					{
+//						OLE *current_OLE = g_map->tiles[i*g_map->width + j].current;
+//						SDL_RenderCopyEx(rend, current_OLE->object->animation->texture, current_OLE->object->animation->tex_box,
+//								&current_OLE->object->box, current_OLE->object->animation->angle, NULL, current_OLE->object->animation->flip);
+//						addObjInList(writed, g_map->tiles[i*g_map->width + j].current->object);
+//					}
+//					nextObjInList(&g_map->tiles[i*g_map->width + j]);
+//				}
+//				headObjInList(&g_map->tiles[i*g_map->width + j]);
+//			}
+//		}
+//		delObjList(writed);
 		SDL_RenderPresent(rend);
 		SDL_Delay(1);
 	}
