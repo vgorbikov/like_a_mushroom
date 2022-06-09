@@ -7,22 +7,6 @@
 #define BLOCK_SIZE 18
 
 
-typedef struct Map
-{
-	int height, width;
-	ObjList *tiles;
-} Map;
-
-
-void addObjInMap(Map *map, Obj *obj);
-
-
-void delObjFromMap(Map *map, Obj *obj);
-
-
-void moveObjOnMap(Map *map, Obj *obj, int dx, int dy);
-
-
 ObjList *mapLoad(SDL_Renderer *rend);
 
 #endif

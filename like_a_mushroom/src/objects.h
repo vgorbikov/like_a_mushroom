@@ -14,6 +14,17 @@
 #define TYPE_MONOLITH 0
 #define TYPE_PLAYER 10
 
+#define LEFT_TOUCH 1
+#define TOP_TOUCH 2
+#define RIGHT_TOUCH 3
+#define BOTTOM_TOUCH 4
+
+typedef struct Line
+{
+	SDL_Point begin;
+	SDL_Point end;
+}Line;
+
 
 /**
  * Описывает параметры текущей анимации объекта
@@ -29,7 +40,6 @@ typedef struct ObjAnimation
 }ObjAnim;
 
 
-
 /**
  * Хранит всю информацию о состоянии объекта
  * Скорость указывается в пикселях в секунду
@@ -38,14 +48,12 @@ typedef struct Object
 {
 	SDL_Rect box;
 	int type;
-	void *map;
 	float x_speed, y_speed, x_boost, y_boost, weight;
-	long int last_xmove, last_ymove;
-	SDL_Point moving;
+	long int last_xmove, last_ymove; //Хранит время последнего перемещения по соответствующим осям
+	SDL_Point moving; //Хранит вектор перемещания
 	ObjAnim *animation;
 	int status;
 } Obj;
-
 
 
 /**
@@ -61,7 +69,6 @@ typedef struct ObjListElem
 }OLE;
 
 
-
 /**
  * Хранит указатели на голову и текущий элемент списка.
  * Все объекты в списке обёрнуты в структуру ObjListElement
@@ -71,6 +78,12 @@ typedef struct Objlist
 	OLE *head;
 	OLE *current;
 }ObjList;
+
+
+void initLine(Line line, int x1, int y1, int x2, int y2);
+
+
+Line *getMovingLines(SDL_Rect *rect, SDL_Point *moving);
 
 
 ObjAnim *initObjAnim(SDL_Renderer *rend, char *path, SDL_Rect *rect);
@@ -102,14 +115,16 @@ int delObjList(ObjList *list);
 
 int objInList(ObjList *list, Obj *obj);
 
-void moveObj(Obj *obj);
 
 void setObjAnimation(Obj *obj, int animation_type);
 
+
 int movingCalculator(Obj *obj);
 
-ObjList *objectsNearby(Obj *obj);
 
-SDL_Rect *touchingCalculator(Obj *obj1, Obj *obj2);
+void moveObj(Obj *obj);
+
+
+int touchingCalculator(Obj *obj1, Obj *obj2);
 
 #endif
