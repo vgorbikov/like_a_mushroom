@@ -1,10 +1,14 @@
 #ifndef objects
 #define objects
 
+#define BLOCK_SIZE 28
+
 #define STONE_CODE 0
 #define STONE_TEXTURE "textures/stone.png"
 #define WOOD_CODE 102
 #define WOOD_TEXTURE "textures/wood.png"
+#define PLAYER_CODE 79
+#define PLAYER_TEXTURE "textures/player_anim.png"
 
 #define STATIC_STATUS 0
 #define RUN_STATUS 10
@@ -18,6 +22,9 @@
 #define TOP_TOUCH 2
 #define RIGHT_TOUCH 3
 #define BOTTOM_TOUCH 4
+
+#define RUN_RIGHT 1
+#define RUN_LEFT 2
 
 typedef struct Line
 {
@@ -40,6 +47,32 @@ typedef struct ObjAnimation
 }ObjAnim;
 
 
+typedef struct ObjEvent
+{
+	long int start_moment;
+	int event_code;
+} ObjEvent;
+
+
+typedef struct EventListElem
+{
+	ObjEvent *event;
+	struct EventListElem *next;
+	struct EventListElem *prev;
+}ELE;
+
+
+/**
+ * Хранит указатели на голову и текущий элемент списка.
+ * Все объекты в списке обёрнуты в структуру ObjListElement
+ */
+typedef struct Eventlist
+{
+	ELE *head;
+	ELE *current;
+}EventList;
+
+
 /**
  * Хранит всю информацию о состоянии объекта
  * Скорость указывается в пикселях в секунду
@@ -48,11 +81,11 @@ typedef struct Object
 {
 	SDL_Rect box;
 	int type;
-	float x_speed, y_speed, x_boost, y_boost, weight;
+	float x_speed, y_speed, x_boost, y_boost;
 	long int last_xmove, last_ymove; //Хранит время последнего перемещения по соответствующим осям
 	SDL_Point moving; //Хранит вектор перемещания
 	ObjAnim *animation;
-	int status;
+	EventList *events;
 } Obj;
 
 
@@ -80,6 +113,9 @@ typedef struct Objlist
 }ObjList;
 
 
+ObjEvent *initEvent(int event_code);
+
+
 void initLine(Line line, int x1, int y1, int x2, int y2);
 
 
@@ -89,7 +125,7 @@ Line *getMovingLines(SDL_Rect *rect, SDL_Point *moving);
 ObjAnim *initObjAnim(SDL_Renderer *rend, char *path, SDL_Rect *rect);
 
 
-Obj *initObject(SDL_Rect obj_box, ObjAnim *tex, float weight, int type);
+Obj *initObject(SDL_Rect obj_box, ObjAnim *tex, int type);
 
 
 OLE *initOLE(Obj *obj);
@@ -116,13 +152,43 @@ int delObjList(ObjList *list);
 int objInList(ObjList *list, Obj *obj);
 
 
+ELE *initELE(ObjEvent *obj);
+
+
+EventList *initEventList();
+
+
+int addEventInList(EventList *list, int event_code);
+
+
+void nextEventInList(EventList *list);
+
+
+void headEventInList(EventList *list);
+
+
+int delEventFromList(EventList *list, int event_code);
+
+
+int delEventList(EventList *list);
+
+
+int EventInList(EventList *list, int event_code);
+
+
 void setObjAnimation(Obj *obj, int animation_type);
+
+
+int animationHandler(ObjList *list);
+
+
+int eventHandler(ObjList *list);
 
 
 int movingCalculator(Obj *obj);
 
 
-void moveObj(Obj *obj);
+//void moveObj(Obj *obj);
 
 
 int touchingCalculator(Obj *obj1, Obj *obj2);

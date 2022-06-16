@@ -8,29 +8,6 @@
 #include "player.h"
 
 
-
-void initLine(Line line, int x1, int y1, int x2, int y2)
-{
-	//Line *line = malloc(sizeof(Line));
-	line.begin.x = x1;
-	line.begin.y = y1;
-	line.end.x = x2;
-	line.end.y = y2;
-}
-
-
-Line *getMovingLines(SDL_Rect *rect, SDL_Point *moving)
-{
-	Line *lines = malloc(4*sizeof(Line));
-	//printf("Start initialization lines\n");
-	initLine(lines[0], (rect->x - moving->x), (rect->y - moving->y), rect->x, rect->y);
-	initLine(lines[1], (rect->x + rect->w - moving->x), (rect->y - moving->y), (rect->x + rect->w), rect->y);
-	initLine(lines[2], (rect->x + rect->w - moving->x), (rect->y + rect->h - moving->y), (rect->x + rect->w), (rect->y + rect->h));
-	initLine(lines[3], (rect->x - moving->x), (rect->y + rect->h - moving->y), rect->x, (rect->y + rect->h));
-	return lines;
-}
-
-
 ObjAnim *initObjAnim(SDL_Renderer *rend, char *path, SDL_Rect *rect)
 {
 	ObjAnim *obj_tex = malloc(sizeof(ObjAnim));
@@ -44,11 +21,19 @@ ObjAnim *initObjAnim(SDL_Renderer *rend, char *path, SDL_Rect *rect)
 }
 
 
-Obj *initObject(SDL_Rect obj_box, ObjAnim *tex, float weight, int type)
+ObjEvent *initEvent(int event_code)
+{
+	ObjEvent *event = calloc(1, sizeof(ObjEvent));
+	event->start_moment = clock();
+	event->event_code = event_code;
+	return event;
+}
+
+
+Obj *initObject(SDL_Rect obj_box, ObjAnim *tex, int type)
 {
 	Obj *new_object = malloc(sizeof(Obj));
 	new_object->box = obj_box;
-	new_object->weight = weight;
 	new_object->x_speed = 0;
 	new_object->x_boost = 0;
 	new_object->y_speed = 0;
@@ -56,7 +41,7 @@ Obj *initObject(SDL_Rect obj_box, ObjAnim *tex, float weight, int type)
 	new_object->animation = tex;
 	new_object->last_xmove = clock();
 	new_object->last_ymove = clock();
-	new_object->status = STATIC_STATUS;
+	new_object->events = initEventList();
 	new_object->type = type;
 	return new_object;
 }
@@ -155,6 +140,112 @@ int objInList(ObjList *list, Obj *obj)
 	return 0;
 }
 
+ELE *initELE(ObjEvent *event)
+{
+	ELE *returned = malloc(sizeof(ELE));
+	returned->event = event;
+	returned->next = NULL;
+	returned->prev = NULL;
+	return returned;
+}
+
+
+EventList *initEventList()
+{
+	EventList *new_list = malloc(sizeof(EventList));
+	new_list->head = NULL;
+	new_list->current = NULL;
+	return new_list;
+}
+
+
+void nextEventInList(EventList *list)
+{
+	if(list->current != NULL) list->current = list->current->next;
+}
+
+
+void headEventInList(EventList *list)
+{
+	list->current = list->head;
+}
+
+
+int eventInList(EventList *list, int event_code)
+{
+	while(list->current != NULL)
+	{
+		if(list->current->event->event_code == event_code)
+		{
+			headEventInList(list);
+			return 1;
+		}
+		nextEventInList(list);
+	}
+	headEventInList(list);
+	return 0;
+}
+
+
+/**
+ * Добавляет событие в список
+ * В отличии от похожей функции для списка объектов, не требует ссылку на экземпляр структуры события,
+ * а создаёт его автоматически, запрашивая только код события
+ */
+int addEventInList(EventList *list, int event_code)
+{
+	if(eventInList(list, event_code)) return 0;
+	ELE *elem = initELE(initEvent(event_code));
+	if(list->head == NULL)
+	{
+		list->head = elem;
+		list->current = elem;
+		return 0;
+	}
+	if(list->current->next != NULL)
+	{
+		elem->next = list->current->next;
+		list->current->next->prev = elem;
+	}
+	list->current->next = elem;
+	elem->prev = list->current;
+	list->current = elem;
+	return 0;
+}
+
+
+int delEventFromList(EventList *list, int event_code)
+{
+	//printf("Deep deleting\n");
+	if(event_code != 0) headEventInList(list);
+	while(list->current != NULL)
+	{
+		if((list->current != NULL)&(list->current->event->event_code == event_code))
+		{
+			if(list->current->prev != NULL) list->current->prev->next = list->current->next;
+			if(list->current->next != NULL) list->current->next->prev = list->current->prev;
+			if(list->current == list->head) list->head = list->current->next;
+			ELE *new_cur = list->current->next;
+			free(list->current);
+			list->current = new_cur;
+		//printf("Deep deleting Done\n");
+		}
+		if(event_code == 0) return 0;
+		if(list->current != NULL) if(list->current->event->event_code != event_code) nextEventInList(list);
+	}
+	headEventInList(list);
+	return 0;
+}
+
+
+int delEventList(EventList *list)
+{
+	headEventInList(list);
+	while(list->head != NULL) delEventFromList(list, 0);
+	if(list != NULL) free(list);
+	return 0;
+}
+
 
 void setObjAnimation(Obj *obj, int animation_type)
 {
@@ -165,6 +256,38 @@ void setObjAnimation(Obj *obj, int animation_type)
 	}
 }
 
+
+int animationHandler(ObjList *list)
+{
+	headObjInList(list);
+	while(list->current != NULL)
+	{
+		if(list->current->object->type == TYPE_PLAYER)
+		{
+			if(eventInList(list->current->object->events, RUN_RIGHT)) updateRunAnim(list->current->object, 1);
+			else if(eventInList(list->current->object->events, RUN_LEFT)) updateRunAnim(list->current->object, -1);
+			else updateStaticAnim(list->current->object);
+		}
+		nextObjInList(list);
+	}
+	headObjInList(list);
+	return 0;
+}
+
+/**
+ * Обрабатывает события, происходящие с объектами
+ * Использует для каждого типа объектов соответствующие функции
+ */
+int eventHandler(ObjList *list)
+{
+	headObjInList(list);
+	while(list->current != NULL)
+	{
+
+	}
+	headObjInList(list);
+	return 0;
+}
 
 /**
  * Вычисляет перемещение объекта с момента отрисовки последнего кадра
@@ -189,18 +312,9 @@ int movingCalculator(Obj *obj)
 		obj->moving.y = obj->y_speed*ydt + obj->y_boost*ydt*ydt/2;
 		obj->last_ymove = clock();
 	}
-//	obj->box.x += obj->moving.x;
-//	obj->box.y += obj->moving.y;
-	return 0;
-}
-
-
-void moveObj(Obj *obj)
-{
 	obj->box.x += obj->moving.x;
 	obj->box.y += obj->moving.y;
-	obj->moving.x = 0;
-	obj->moving.y = 0;
+	return 0;
 }
 
 
@@ -212,88 +326,96 @@ void moveObj(Obj *obj)
 // */
 int touchingCalculator(Obj *donor, Obj *acceptor)
 {
-	donor->box.x += donor->moving.x;
-	donor->box.y += donor->moving.y;
 	int movx = donor->moving.x;
 	int movy = donor->moving.y;
-	SDL_Rect lacmus;
-	if((SDL_HasIntersection(&donor->box, &acceptor->box)&(donor != acceptor)) == SDL_TRUE)
+	SDL_Rect *don_box = malloc(sizeof(SDL_Rect));
+	donor->box.x -= donor->moving.x;
+	donor->box.y -= donor->moving.y;
+	don_box->x = donor->box.x + movx;
+	don_box->y = donor->box.y + movy;
+	SDL_Rect *lacmus = calloc(1, sizeof(SDL_Rect));
+	if(SDL_HasIntersection(don_box, &acceptor->box) == SDL_TRUE)
 	{
+		printf("TOUCH:\n");
 		float fx = movx;
 		float fy = movy;
-		float k = fy/fx;
+		float ky = fy/fx;
 		float kx = fx/fy;
-		float dy = 0;
-		float dx = 0;
-		while(movx != 0)
-		{
-			if(movx > 0)
-			{
-				dy -= k;
-				donor->box.x -= 1;
-				movx -=1;
-				if(abs(dy/1) > 0)
-				{
-					dy -= (abs(dy) - 1)*(abs(dy)/dy);
-					donor->box.y += abs(dy)/dy;
-					movy += abs(dy)/dy;
-				}
-			}
-			if(movx < 0)
-			{
-				dy += k;
-				donor->box.x += 1;
-				movx +=1;
-				if(abs(dy/1) > 0)
-				{
-					dy -= (abs(dy) - 1)*(abs(dy)/dy);
-					donor->box.y += abs(dy)/dy;
-					movy += abs(dy)/dy;
-				}
-			}
-			SDL_IntersectRect(&donor->box, &acceptor->box, &lacmus);
-			if((lacmus.h == 1)||(lacmus.w == 1)) break;
-		}
-		while(movy != 0)
-		{
-			if(movy > 0)
-			{
-				dx -= kx;
-				donor->box.y -= 1;
-				movy -=1;
-				if(abs(dx/1) > 0)
-				{
-					dx -= (abs(dx) - 1)*(abs(dx)/dx);
-					donor->box.x += abs(dx)/dx;
-					movx += abs(dx)/dx;
-				}
-			}
-			if(movy < 0)
-			{
-				dx += kx;
-				donor->box.y += 1;
-				movy +=1;
-				if(abs(dx/1) > 0)
-				{
-					dx -= (abs(dx) - 1)*(abs(dx)/dx);
-					donor->box.x += abs(dx)/dx;
-					movx += abs(dx)/dx;
-				}
-			}
-			SDL_IntersectRect(&donor->box, &acceptor->box, &lacmus);
-			if((lacmus.h == 1)||(lacmus.w == 1)) break;
-			}
-	}
 
-	if(lacmus.h == 1)
-	{
-		if(lacmus.y == acceptor->box.y) return TOP_TOUCH;
-		if(lacmus.y == (acceptor->box.y + acceptor->box.h - 1)) return BOTTOM_TOUCH;
+		if(fx != 0 )
+		{
+			while(movx != 0)
+			{
+				SDL_IntersectRect(don_box, &acceptor->box, lacmus);
+				if((lacmus->h == 1)||(lacmus->w <= 2))
+				{
+					printf("brk\n");
+					break;
+				}
+				movx -= abs(movx)/movx;
+				movy = movx*ky;
+				don_box->x = donor->box.x + movx;
+				don_box->y = donor->box.y + movy;
+			}
+		}
+		if(fy != 0 )
+		{
+			while(movy != 0)
+			{
+				SDL_IntersectRect(don_box, &acceptor->box, lacmus);
+				if((lacmus->h == 1)||(lacmus->w <= 2))
+				{
+					printf("brk\n");
+					break;
+				}
+				movy -= abs(movy)/movy;
+				movx = movy*kx;
+				don_box->y = donor->box.y + movy;
+				don_box->x = donor->box.x + movx;
+			}
+		}
+		SDL_IntersectRect(don_box, &acceptor->box, lacmus);
 	}
-	if(lacmus.w == 1)
+	free(don_box);
+	donor->box.x += donor->moving.x;
+	donor->box.y += donor->moving.y;
+	donor->moving.x = 0;
+	donor->moving.y = 0;
+	int xltt = acceptor->box.x + 1;
+	int xltl = acceptor->box.x;
+	int yltt = acceptor->box.y;
+	int yltl = acceptor->box.y + 1;
+	int xrtr = acceptor->box.x + acceptor->box.w;
+	int xrtt = acceptor->box.x + acceptor->box.w - 1;
+	int yrtt = acceptor->box.y;
+	int yrtr = acceptor->box.y + 1;
+	int xlbb = acceptor->box.x + 1;
+	int xlbl = acceptor->box.x;
+	int ylbb = acceptor->box.y + acceptor->box.h;
+	int ylbl = acceptor->box.y + acceptor->box.h - 1;
+	int xrbb = acceptor->box.x + acceptor->box.w - 1;
+	int xrbr = acceptor->box.x + acceptor->box.w;
+	int yrbb = acceptor->box.y + acceptor->box.h;
+	int yrbr = acceptor->box.y + acceptor->box.h - 1;
+	if(SDL_IntersectRectAndLine(lacmus, &xltl, &yltl, &xlbl, &ylbl) == SDL_TRUE)
 	{
-		if(lacmus.x == acceptor->box.x) return LEFT_TOUCH;
-		if(lacmus.x == (acceptor->box.x + acceptor->box.w - 1)) return RIGHT_TOUCH;
+		free(lacmus);
+		return LEFT_TOUCH;
+	}
+	if(SDL_IntersectRectAndLine(lacmus, &xltt, &yltt, &xrtt, &yrtt) == SDL_TRUE)
+	{
+		free(lacmus);
+		return TOP_TOUCH;
+	}
+	if(SDL_IntersectRectAndLine(lacmus, &xrtr, &yrtr, &xrbr, &yrbr) == SDL_TRUE)
+	{
+		free(lacmus);
+		return RIGHT_TOUCH;
+	}
+	if(SDL_IntersectRectAndLine(lacmus, &xlbb, &ylbb, &xrbb, &yrbb) == SDL_TRUE)
+	{
+		free(lacmus);
+		return BOTTOM_TOUCH;
 	}
 	return 0;
 }

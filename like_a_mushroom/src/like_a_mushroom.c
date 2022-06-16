@@ -16,8 +16,8 @@
 #include "map_funcs.h"
 #include "player.h"
 
-const int SCREEN_WIDTH = 640;
-const int SCREEN_HEIGHT = 480;
+const int SCREEN_WIDTH = 1280;
+const int SCREEN_HEIGHT = 720;
 
 
 SDL_Window *initWindow(int WIDTH, int HEIGHT)
@@ -35,12 +35,7 @@ SDL_Window *initWindow(int WIDTH, int HEIGHT)
 #define BUTTON_PRESSED 1
 #define BUTTON_UNPRESSED 0
 
-typedef struct Button
-{
-	SDL_Keycode code;
-	int status;
-} Button;
-
+int left_arrow, up_arrow, right_arrow, down_arrow;
 
 SDL_bool controlHandler(Obj *player)
 {
@@ -53,19 +48,17 @@ SDL_bool controlHandler(Obj *player)
 				return SDL_TRUE;
 				break;
 			case SDL_KEYDOWN:
-				if(event.key.keysym.sym == SDLK_RIGHT) run(player, 500);
-				if(event.key.keysym.sym == SDLK_LEFT) run(player, -500);
-				if(event.key.keysym.sym == SDLK_UP)
-				{
-					player->y_speed = -500;
-				}
-				if(event.key.keysym.sym == SDLK_DOWN) player->y_speed = 500;
+				if(event.key.keysym.sym == SDLK_RIGHT) addEventInList(player->events, RUN_RIGHT);
+				if(event.key.keysym.sym == SDLK_LEFT) addEventInList(player->events, RUN_LEFT);
+//				if(event.key.keysym.sym == SDLK_UP) up_arrow.status = BUTTON_PRESSED;
+//				if(event.key.keysym.sym == SDLK_DOWN) down_arrow.status = BUTTON_PRESSED;
 				setObjAnimation(player, RUN_STATUS);
 				break;
 			case SDL_KEYUP:
-				setObjAnimation(player, STATIC_STATUS);
-				player->x_speed = 0;
-				player->y_speed = 0;
+				if(event.key.keysym.sym == SDLK_RIGHT) delEventFromList(player->events, RUN_RIGHT);
+				if(event.key.keysym.sym == SDLK_LEFT) delEventFromList(player->events, RUN_LEFT);
+//				if(event.key.keysym.sym == SDLK_UP) up_arrow.status = BUTTON_UNPRESSED;
+//				if(event.key.keysym.sym == SDLK_DOWN) down_arrow.status = BUTTON_UNPRESSED;
 				break;
 		}
 	}
@@ -74,7 +67,6 @@ SDL_bool controlHandler(Obj *player)
 
 
 int main(int argc, char *argv[]) {
-
 	setvbuf(stdout, NULL, _IONBF, 0);
 	setvbuf(stderr, NULL, _IONBF, 0);
 
@@ -85,32 +77,37 @@ int main(int argc, char *argv[]) {
 
 	rend = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 	background = IMG_LoadTexture(rend, "textures/background.bmp");
-	ObjList *g_map = mapLoad(rend);
 
 
-	//SDL_Texture *pTex = IMG_LoadTexture(rend, "textures/player_anim.png");
-	SDL_Rect pTexBox;
-	pTexBox.x = 0;
-	pTexBox.y = 0;
-	pTexBox.w = 100;
-	pTexBox.h = 100;
-	ObjAnim *playerTex = initObjAnim(rend, "textures/player_anim.png", &pTexBox);
-	SDL_Rect playerBox;
-	playerBox.x = 20;
-	playerBox.y = 16;
-	playerBox.h = 50;
-	playerBox.w = 50;
+	ObjList *g_map = mapLoad(rend); //Загрузка карты
 
-	Obj *player = initObject(playerBox, playerTex, 1, SDL_FALSE);
-//	addObjInMap(g_map, player);
-	addObjInList(g_map, player);
+
+	Obj *player = getPlayer(g_map); //Получение объекта игрока на карте
 
 
 	while (!controlHandler(player))
 	{
+		headObjInList(g_map);
+//		printf("Events...\n");
+		while(g_map->current != NULL)
+		{
 
+			Obj *cur_obj = g_map->current->object;
+			cur_obj->x_speed = 0;
+			while(cur_obj->events->current != NULL)
+			{
+				if(cur_obj->events->current->event->event_code == RUN_RIGHT) cur_obj->x_speed = 500;
+				if(cur_obj->events->current->event->event_code == RUN_LEFT) cur_obj->x_speed = -500;
+				nextEventInList(cur_obj->events);
+			}
+			headEventInList(cur_obj->events);
+			nextObjInList(g_map);
+		}
+
+//		printf("MOving...\n");
 		movingCalculator(player);
 
+//		printf("Touch...\n");
 		headObjInList(g_map);
 		while(g_map->current != NULL)
 		{
@@ -118,45 +115,37 @@ int main(int argc, char *argv[]) {
 			Obj *cur_obj = g_map->current->object;
 			if((SDL_HasIntersection(&player->box, &cur_obj->box)&(cur_obj != player)) == SDL_TRUE)
 			{
-				switch(touchingCalculator(player, cur_obj))
-				{
-					case TOP_TOUCH:
-						printf("top touch\n");
-						player->moving.y = cur_obj->box.y - (player->box.y + player->box.h - 1);
-						break;
-					case LEFT_TOUCH:
-						printf("left touch\n");
-						player->moving.x = cur_obj->box.x - (player->box.x + player->box.w - 1);
-						break;
-					case RIGHT_TOUCH:
-						printf("right touch\n");
-						player->moving.x = (cur_obj->box.x + cur_obj->box.w) - player->box.x;
-						break;
-					case BOTTOM_TOUCH:
-						printf("bottom touch\n");
-						player->moving.y = (cur_obj->box.y + cur_obj->box.h) - player->box.y - 1;
-						break;
-				}
+//				switch(touchingCalculator(player, cur_obj))
+//				{
+//					case TOP_TOUCH:
+//						printf("top touch\n");
+//						player->box.y = cur_obj->box.y - player->box.h;
+//						break;
+//					case LEFT_TOUCH:
+//						printf("left touch\n");
+//						player->box.x = cur_obj->box.x - player->box.w;
+//						break;
+//					case RIGHT_TOUCH:
+//						printf("right touch\n");
+//						player->box.x = cur_obj->box.x + cur_obj->box.w;;
+//						break;
+//					case BOTTOM_TOUCH:
+//						printf("bottom touch\n");
+//						player->box.y = cur_obj->box.y + cur_obj->box.h;
+//						break;
+//				}
 			}
 			nextObjInList(g_map);
 		}
-		moveObj(player);
 
-		if(player->animation->status == RUN_STATUS) updateRunAnim(player);
-		if(player->animation->status == STATIC_STATUS) updateStaticAnim(player);
+//		printf("Anim...\n");
+		animationHandler(g_map);
 
 		SDL_RenderClear(rend);
 		SDL_RenderCopy(rend, background, NULL, NULL);
-		//printf("Start render\n");
-		headObjInList(g_map);
-		while(g_map->current != NULL)
-		{
-			Obj *cur_obj = g_map->current->object;
-			SDL_RenderCopyEx(rend, cur_obj->animation->texture, cur_obj->animation->tex_box,
-					&cur_obj->box, cur_obj->animation->angle, NULL, cur_obj->animation->flip);
-			nextObjInList(g_map);
+//		printf("Start render\n");
 
-		}
+		mapRender(g_map, rend);
 
 		SDL_RenderPresent(rend);
 		SDL_Delay(1);

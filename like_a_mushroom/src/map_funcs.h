@@ -4,9 +4,15 @@
 
 #define RENDERING_AREA_HEIGHT 28
 #define RENDERING_AREA_WIDTH 47
-#define BLOCK_SIZE 18
+
 
 
 ObjList *mapLoad(SDL_Renderer *rend);
+
+
+Obj *getPlayer(ObjList *map);
+
+
+int mapRender(ObjList *map, SDL_Renderer *rend);
 
 #endif
