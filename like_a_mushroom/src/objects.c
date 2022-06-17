@@ -35,9 +35,7 @@ Obj *initObject(SDL_Rect obj_box, ObjAnim *tex, int type)
 	Obj *new_object = malloc(sizeof(Obj));
 	new_object->box = obj_box;
 	new_object->x_speed = 0;
-	new_object->x_boost = 0;
 	new_object->y_speed = 0;
-	new_object->y_boost = 0;
 	new_object->animation = tex;
 	new_object->last_xmove = clock();
 	new_object->last_ymove = clock();
@@ -47,6 +45,10 @@ Obj *initObject(SDL_Rect obj_box, ObjAnim *tex, int type)
 }
 
 
+/**
+ * Возвращает элемент-обёртку списка.
+ * Внутренняя функция.
+ */
 OLE *initOLE(Obj *obj)
 {
 	OLE *returned = malloc(sizeof(OLE));
@@ -57,6 +59,9 @@ OLE *initOLE(Obj *obj)
 }
 
 
+/**
+ * Возвращает пустой список объектов
+ */
 ObjList *initObjList()
 {
 	ObjList *new_list = malloc(sizeof(ObjList));
@@ -66,6 +71,10 @@ ObjList *initObjList()
 }
 
 
+/**
+ * Добавляет объект в указанный список
+ * (На текущую позицию)
+ */
 int addObjInList(ObjList *list, Obj *obj)
 {
 	OLE *elem = initOLE(obj);
@@ -87,18 +96,27 @@ int addObjInList(ObjList *list, Obj *obj)
 }
 
 
+/**
+ * Перемещает указатель на текущий объект на позицию вперёд
+ */
 void nextObjInList(ObjList *list)
 {
 	if(list->current != NULL) list->current = list->current->next;
 }
 
 
+/**
+ * Перемещает указатель на текущий объект в начало списка
+ */
 void headObjInList(ObjList *list)
 {
 	list->current = list->head;
 }
 
 
+/**
+ * Удаляет текущий объект из списка
+ */
 int delObjFromList(ObjList *list)
 {
 	//printf("Deep deleting\n");
@@ -116,6 +134,9 @@ int delObjFromList(ObjList *list)
 }
 
 
+/**
+ * Удаляет список объектов
+ */
 int delObjList(ObjList *list)
 {
 	headObjInList(list);
@@ -125,6 +146,10 @@ int delObjList(ObjList *list)
 }
 
 
+/**
+ * Возвращает 1, если указанный объект есть в указанном списке.
+ * В противном случае 0.
+ */
 int objInList(ObjList *list, Obj *obj)
 {
 	while(list->current != NULL)
@@ -140,6 +165,11 @@ int objInList(ObjList *list, Obj *obj)
 	return 0;
 }
 
+
+/**
+ * Функция для создания элемента-оболочки в списке событий.
+ * Внутренняя функция. В хорошем случае вы не увидите её почти нигде)
+ */
 ELE *initELE(ObjEvent *event)
 {
 	ELE *returned = malloc(sizeof(ELE));
@@ -150,6 +180,10 @@ ELE *initELE(ObjEvent *event)
 }
 
 
+/**
+ * Функция для инициализации списка событий.
+ * Возвращает пустой список событий.
+ */
 EventList *initEventList()
 {
 	EventList *new_list = malloc(sizeof(EventList));
@@ -159,18 +193,29 @@ EventList *initEventList()
 }
 
 
+
+/**
+ * Переводит указатель current на одну позицию вперёд в списке событий
+ */
 void nextEventInList(EventList *list)
 {
 	if(list->current != NULL) list->current = list->current->next;
 }
 
 
+/**
+ * Переводит указатель current на головной элемент в списке событий
+ */
 void headEventInList(EventList *list)
 {
 	list->current = list->head;
 }
 
 
+/**
+ * Возвращает 1, если событие с указанным кодом есть в указанном списке.
+ * В противном случае 0.
+ */
 int eventInList(EventList *list, int event_code)
 {
 	while(list->current != NULL)
@@ -190,7 +235,8 @@ int eventInList(EventList *list, int event_code)
 /**
  * Добавляет событие в список
  * В отличии от похожей функции для списка объектов, не требует ссылку на экземпляр структуры события,
- * а создаёт его автоматически, запрашивая только код события
+ * а создаёт его автоматически, запрашивая только код события.
+ * Не добавляет событие, если оно уже есть
  */
 int addEventInList(EventList *list, int event_code)
 {
@@ -214,6 +260,9 @@ int addEventInList(EventList *list, int event_code)
 }
 
 
+/**
+ * Удаляет событие с указанным кодом из списка
+ */
 int delEventFromList(EventList *list, int event_code)
 {
 	//printf("Deep deleting\n");
@@ -238,6 +287,9 @@ int delEventFromList(EventList *list, int event_code)
 }
 
 
+/**
+ * Удаляет список событий
+ */
 int delEventList(EventList *list)
 {
 	headEventInList(list);
@@ -247,16 +299,10 @@ int delEventList(EventList *list)
 }
 
 
-void setObjAnimation(Obj *obj, int animation_type)
-{
-	if(obj->animation->status != animation_type)
-	{
-		obj->animation->status = animation_type;
-		obj->animation->start_moment = clock();
-	}
-}
-
-
+/**
+ * Функция для обработки текущих анимаций объектов.
+ * Выставляет и пересчитывает анимации объектов в зависимости от контекста
+ */
 int animationHandler(ObjList *list)
 {
 	headObjInList(list);
@@ -264,15 +310,16 @@ int animationHandler(ObjList *list)
 	{
 		if(list->current->object->type == TYPE_PLAYER)
 		{
-			if(eventInList(list->current->object->events, RUN_RIGHT)) updateRunAnim(list->current->object, 1);
-			else if(eventInList(list->current->object->events, RUN_LEFT)) updateRunAnim(list->current->object, -1);
-			else updateStaticAnim(list->current->object);
+			if(eventInList(list->current->object->events, RUN_RIGHT)) updatePlayerRunAnim(list->current->object, 1);
+			else if(eventInList(list->current->object->events, RUN_LEFT)) updatePlayerRunAnim(list->current->object, -1);
+			else updatePlayerStaticAnim(list->current->object);
 		}
 		nextObjInList(list);
 	}
 	headObjInList(list);
 	return 0;
 }
+
 
 /**
  * Обрабатывает события, происходящие с объектами
@@ -283,37 +330,13 @@ int eventHandler(ObjList *list)
 	headObjInList(list);
 	while(list->current != NULL)
 	{
-
+		if(list->current->object->type == TYPE_PLAYER)
+		{
+			playerEventHandler(list->current->object);
+		}
+		nextObjInList(list);
 	}
 	headObjInList(list);
-	return 0;
-}
-
-/**
- * Вычисляет перемещение объекта с момента отрисовки последнего кадра
- * Придаёт объекту перемещение
- */
-int movingCalculator(Obj *obj)
-{
-	long int time = clock();
-	float tempxdt = (time - obj->last_xmove);
-	float xdt = tempxdt/1000;
-	if(!(((obj->x_speed*xdt + obj->x_boost*xdt*xdt/2) < 1) & ((obj->x_speed*xdt + obj->x_boost*xdt*xdt/2) > -1) & (obj->x_speed != 0)))
-	{
-		obj->moving.x = obj->x_speed*xdt + obj->x_boost*xdt*xdt/2;
-		obj->last_xmove = clock();
-	}
-
-
-	float tempydt = (time - obj->last_ymove);
-	float ydt = tempydt/1000;
-	if(!(((obj->y_speed*ydt + obj->y_boost*ydt*ydt/2) < 1) & ((obj->y_speed*ydt + obj->y_boost*ydt*ydt/2) > -1) & (obj->y_speed != 0)))
-	{
-		obj->moving.y = obj->y_speed*ydt + obj->y_boost*ydt*ydt/2;
-		obj->last_ymove = clock();
-	}
-	obj->box.x += obj->moving.x;
-	obj->box.y += obj->moving.y;
 	return 0;
 }
 

@@ -50,15 +50,14 @@ SDL_bool controlHandler(Obj *player)
 			case SDL_KEYDOWN:
 				if(event.key.keysym.sym == SDLK_RIGHT) addEventInList(player->events, RUN_RIGHT);
 				if(event.key.keysym.sym == SDLK_LEFT) addEventInList(player->events, RUN_LEFT);
-//				if(event.key.keysym.sym == SDLK_UP) up_arrow.status = BUTTON_PRESSED;
-//				if(event.key.keysym.sym == SDLK_DOWN) down_arrow.status = BUTTON_PRESSED;
-				setObjAnimation(player, RUN_STATUS);
+//				if(event.key.keysym.sym == SDLK_UP) something;
+//				if(event.key.keysym.sym == SDLK_DOWN) something;
 				break;
 			case SDL_KEYUP:
 				if(event.key.keysym.sym == SDLK_RIGHT) delEventFromList(player->events, RUN_RIGHT);
 				if(event.key.keysym.sym == SDLK_LEFT) delEventFromList(player->events, RUN_LEFT);
-//				if(event.key.keysym.sym == SDLK_UP) up_arrow.status = BUTTON_UNPRESSED;
-//				if(event.key.keysym.sym == SDLK_DOWN) down_arrow.status = BUTTON_UNPRESSED;
+//				if(event.key.keysym.sym == SDLK_UP) something;
+//				if(event.key.keysym.sym == SDLK_DOWN) something;
 				break;
 		}
 	}
@@ -87,27 +86,8 @@ int main(int argc, char *argv[]) {
 
 	while (!controlHandler(player))
 	{
-		headObjInList(g_map);
-//		printf("Events...\n");
-		while(g_map->current != NULL)
-		{
+		eventHandler(g_map);
 
-			Obj *cur_obj = g_map->current->object;
-			cur_obj->x_speed = 0;
-			while(cur_obj->events->current != NULL)
-			{
-				if(cur_obj->events->current->event->event_code == RUN_RIGHT) cur_obj->x_speed = 500;
-				if(cur_obj->events->current->event->event_code == RUN_LEFT) cur_obj->x_speed = -500;
-				nextEventInList(cur_obj->events);
-			}
-			headEventInList(cur_obj->events);
-			nextObjInList(g_map);
-		}
-
-//		printf("MOving...\n");
-		movingCalculator(player);
-
-//		printf("Touch...\n");
 		headObjInList(g_map);
 		while(g_map->current != NULL)
 		{
@@ -138,13 +118,13 @@ int main(int argc, char *argv[]) {
 			nextObjInList(g_map);
 		}
 
-//		printf("Anim...\n");
+
 		animationHandler(g_map);
 
 		SDL_RenderClear(rend);
 		SDL_RenderCopy(rend, background, NULL, NULL);
-//		printf("Start render\n");
 
+//		printf("Start render\n");
 		mapRender(g_map, rend);
 
 		SDL_RenderPresent(rend);

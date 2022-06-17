@@ -1,15 +1,21 @@
 #ifndef player_person
 #define player_person
 
-
-#define PLAYER_ANIMATION_DURATION 400
+#define PLAYER_RUN_SPEED 300
+#define PLAYER_RUN_ANIMATION_DURATION 500
 
 Obj *initPlayer(SDL_Renderer *rend, int x, int y);
 
-void run(Obj *obj, int speed);
+int playerRun(Obj *player, int direction);
 
-void updateRunAnim(Obj *obj, int direction);
+int playerStop(Obj *player, int direction, long int stime);
 
-void updateStaticAnim(Obj *obj);
+void updatePlayerRunAnim(Obj *obj, int direction);
+
+void updatePlayerStaticAnim(Obj *obj);
+
+void updatePlayerJumpAnim(Obj *obj, int direction);
+
+int playerEventHandler(Obj *player);
 
 #endif

@@ -3,28 +3,53 @@
 
 #define BLOCK_SIZE 28
 
+/*
+ * Ккоды разных блоков для расшифровки карты
+ */
 #define STONE_CODE 0
-#define STONE_TEXTURE "textures/stone.png"
 #define WOOD_CODE 102
-#define WOOD_TEXTURE "textures/wood.png"
 #define PLAYER_CODE 79
+
+
+/*
+ * Пути к текстурам объектов
+ */
+#define STONE_TEXTURE "textures/stone.png"
+#define WOOD_TEXTURE "textures/wood.png"
 #define PLAYER_TEXTURE "textures/player_anim.png"
 
+
+/*
+ * Статусы анимации
+ */
 #define STATIC_STATUS 0
 #define RUN_STATUS 10
 #define JUMP_STATUS 20
 #define HITED_STATUS 30
 
+
+/*
+ * Типы объектов
+ */
 #define TYPE_MONOLITH 0
 #define TYPE_PLAYER 10
 
+
+/*
+ * Типы касаний объектов
+ */
 #define LEFT_TOUCH 1
 #define TOP_TOUCH 2
 #define RIGHT_TOUCH 3
 #define BOTTOM_TOUCH 4
 
+
+/*
+ * События
+ */
 #define RUN_RIGHT 1
 #define RUN_LEFT 2
+#define JUMP 3
 
 typedef struct Line
 {
@@ -81,12 +106,13 @@ typedef struct Object
 {
 	SDL_Rect box;
 	int type;
-	float x_speed, y_speed, x_boost, y_boost;
+	float x_speed, y_speed; //скорость, свойственная объекту при перемещении
 	long int last_xmove, last_ymove; //Хранит время последнего перемещения по соответствующим осям
 	SDL_Point moving; //Хранит вектор перемещания
 	ObjAnim *animation;
 	EventList *events;
 } Obj;
+
 
 
 /**
@@ -114,12 +140,6 @@ typedef struct Objlist
 
 
 ObjEvent *initEvent(int event_code);
-
-
-void initLine(Line line, int x1, int y1, int x2, int y2);
-
-
-Line *getMovingLines(SDL_Rect *rect, SDL_Point *moving);
 
 
 ObjAnim *initObjAnim(SDL_Renderer *rend, char *path, SDL_Rect *rect);
@@ -173,7 +193,7 @@ int delEventFromList(EventList *list, int event_code);
 int delEventList(EventList *list);
 
 
-int EventInList(EventList *list, int event_code);
+int eventInList(EventList *list, int event_code);
 
 
 void setObjAnimation(Obj *obj, int animation_type);
