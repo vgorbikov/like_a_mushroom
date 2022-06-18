@@ -196,19 +196,13 @@ int delEventList(EventList *list);
 int eventInList(EventList *list, int event_code);
 
 
-void setObjAnimation(Obj *obj, int animation_type);
-
-
 int animationHandler(ObjList *list);
 
 
 int eventHandler(ObjList *list);
 
 
-int movingCalculator(Obj *obj);
-
-
-//void moveObj(Obj *obj);
+int hasIntersectTwoSegment(SDL_Point *begin1, SDL_Point *end1, SDL_Point *begin2, SDL_Point *end2);
 
 
 int touchingCalculator(Obj *obj1, Obj *obj2);

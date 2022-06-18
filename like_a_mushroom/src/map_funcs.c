@@ -87,5 +87,6 @@ int mapRender(ObjList *map, SDL_Renderer *rend)
 		nextObjInList(map);
 
 	}
+	headObjInList(map);
 	return 0;
 }

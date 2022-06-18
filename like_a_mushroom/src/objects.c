@@ -32,7 +32,7 @@ ObjEvent *initEvent(int event_code)
 
 Obj *initObject(SDL_Rect obj_box, ObjAnim *tex, int type)
 {
-	Obj *new_object = malloc(sizeof(Obj));
+	Obj *new_object = calloc(1, sizeof(Obj));
 	new_object->box = obj_box;
 	new_object->x_speed = 0;
 	new_object->y_speed = 0;
@@ -341,105 +341,177 @@ int eventHandler(ObjList *list)
 }
 
 
-///**
-// * Возвращает тип касания двух объектов, если оно есть
-// * В противном случае 0
-// * Первый аргумент - объект совершающий касание
-// * Второй аргумент - объект "принимающий" касание
-// */
-int touchingCalculator(Obj *donor, Obj *acceptor)
-{
-	int movx = donor->moving.x;
-	int movy = donor->moving.y;
-	SDL_Rect *don_box = malloc(sizeof(SDL_Rect));
-	donor->box.x -= donor->moving.x;
-	donor->box.y -= donor->moving.y;
-	don_box->x = donor->box.x + movx;
-	don_box->y = donor->box.y + movy;
-	SDL_Rect *lacmus = calloc(1, sizeof(SDL_Rect));
-	if(SDL_HasIntersection(don_box, &acceptor->box) == SDL_TRUE)
-	{
-		printf("TOUCH:\n");
-		float fx = movx;
-		float fy = movy;
-		float ky = fy/fx;
-		float kx = fx/fy;
 
-		if(fx != 0 )
-		{
-			while(movx != 0)
-			{
-				SDL_IntersectRect(don_box, &acceptor->box, lacmus);
-				if((lacmus->h == 1)||(lacmus->w <= 2))
-				{
-					printf("brk\n");
-					break;
-				}
-				movx -= abs(movx)/movx;
-				movy = movx*ky;
-				don_box->x = donor->box.x + movx;
-				don_box->y = donor->box.y + movy;
-			}
-		}
-		if(fy != 0 )
-		{
-			while(movy != 0)
-			{
-				SDL_IntersectRect(don_box, &acceptor->box, lacmus);
-				if((lacmus->h == 1)||(lacmus->w <= 2))
-				{
-					printf("brk\n");
-					break;
-				}
-				movy -= abs(movy)/movy;
-				movx = movy*kx;
-				don_box->y = donor->box.y + movy;
-				don_box->x = donor->box.x + movx;
-			}
-		}
-		SDL_IntersectRect(don_box, &acceptor->box, lacmus);
-	}
-	free(don_box);
-	donor->box.x += donor->moving.x;
-	donor->box.y += donor->moving.y;
-	donor->moving.x = 0;
-	donor->moving.y = 0;
-	int xltt = acceptor->box.x + 1;
-	int xltl = acceptor->box.x;
-	int yltt = acceptor->box.y;
-	int yltl = acceptor->box.y + 1;
-	int xrtr = acceptor->box.x + acceptor->box.w;
-	int xrtt = acceptor->box.x + acceptor->box.w - 1;
-	int yrtt = acceptor->box.y;
-	int yrtr = acceptor->box.y + 1;
-	int xlbb = acceptor->box.x + 1;
-	int xlbl = acceptor->box.x;
-	int ylbb = acceptor->box.y + acceptor->box.h;
-	int ylbl = acceptor->box.y + acceptor->box.h - 1;
-	int xrbb = acceptor->box.x + acceptor->box.w - 1;
-	int xrbr = acceptor->box.x + acceptor->box.w;
-	int yrbb = acceptor->box.y + acceptor->box.h;
-	int yrbr = acceptor->box.y + acceptor->box.h - 1;
-	if(SDL_IntersectRectAndLine(lacmus, &xltl, &yltl, &xlbl, &ylbl) == SDL_TRUE)
+/**
+ * Возвращает 1, если отрезки пересекаются
+ * В противном случае 0
+ */
+int hasIntersectTwoSegment(SDL_Point *begin1, SDL_Point *end1, SDL_Point *begin2, SDL_Point *end2)
+{
+	float x = 0;//точка пересечения
+	float y = 0;
+	float dx1 = end1->x - begin1->x;
+	float dy1 = end1->y - begin1->y;
+	float dx2 = end2->x - begin2->x;
+	float dy2 = end2->y - begin2->y;
+	float k1 = dy1/dx1;
+	float k2 = dy2/dx2;
+	if((dx1 == 0)&(dx2 == 0)) //если обе линии вертикальны
 	{
-		free(lacmus);
-		return LEFT_TOUCH;
+		printf("Vert&Vert\n");
+		if(begin1->x != begin2->x) return 0; //не пересекаются
+		if(((begin1->y < begin2->y)&(begin1->y < end2->y)&(end1->y < begin2->y)&(end1->y < end2->y))||
+				((begin1->y > begin2->y)&(begin1->y > end2->y)&(end1->y > begin2->y)&(end1->y > end2->y))) return 0;
+		else return 1;
+
 	}
-	if(SDL_IntersectRectAndLine(lacmus, &xltt, &yltt, &xrtt, &yrtt) == SDL_TRUE)
+	if((k1 == 0)&(k2 == 0)) //если обе линии горизонтальны
 	{
-		free(lacmus);
-		return TOP_TOUCH;
+		printf("Hor&Hor\n");
+		if(begin1->y != begin2->y) return 0; //не пересекаются
+		if(((begin1->x < begin2->x)&(begin1->x < end2->x)&(end1->x < begin2->x)&(end1->x < end2->x))||
+				((begin1->x > begin2->x)&(begin1->x > end2->x)&(end1->x > begin2->x)&(end1->x > end2->x))) return 0;
+		else return 1;
+
 	}
-	if(SDL_IntersectRectAndLine(lacmus, &xrtr, &yrtr, &xrbr, &yrbr) == SDL_TRUE)
+	if(dx1 == 0) //если вертикальна только первая линия
 	{
-		free(lacmus);
-		return RIGHT_TOUCH;
+		printf("Ver&...\n");
+		x = begin1->x;
+		y = k2*(x - begin2->x) + begin2->y;
 	}
-	if(SDL_IntersectRectAndLine(lacmus, &xlbb, &ylbb, &xrbb, &yrbb) == SDL_TRUE)
+	if(dx2 == 0) //если вертикальна только вторая линия
 	{
-		free(lacmus);
-		return BOTTOM_TOUCH;
+		printf("...&Vert\n");
+		x = begin2->x;
+		y = k1*(x - begin1->x) + begin1->y;
 	}
+	if(k1 == 0) //если горизонтальна только первая линия
+	{
+		printf("Hor&...\n");
+		y = begin1->y;
+		x = (y - begin2->y + k2*begin2->x)/k2;
+	}
+	if(k2 == 0) //если горизонтальна только вторая линия
+	{
+		printf("...&Hor\n");
+		y = begin2->y;
+		x = (y - begin1->y + k1*begin1->x)/k1;
+	}
+	if((dx1 == 0)&(k2==0)) //первая линия вертикальна, вторая горизонтальна
+	{
+		x = begin1->x;
+		y = begin2->y;
+	}
+	if((dx2 == 0)&(k1==0)) //первая линия горизонтальна, вторая вертикальна
+	{
+		x = begin2->x;
+		y = begin1->y;
+	}
+	//случай с двумя наклонными линиями обрабатывать пока не требуется
+	int belong_x1 = ((x <= begin1->x)&(x >= end1->x))||((x >= begin1->x)&(x <= end1->x));
+	int belong_x2 = ((x <= begin2->x)&(x >= end2->x))||((x >= begin2->x)&(x <= end2->x));
+	int belong_y1 = ((y <= begin1->y)&(y >= end1->y))||((y >= begin1->y)&(y <= end1->y));
+	int belong_y2 = ((y <= begin2->y)&(y >= end2->y))||((y >= begin2->y)&(y <= end2->y));
+	int belong_1 = belong_x1 & belong_y1;
+	int belong_2 = belong_x2 & belong_y2;
+	if(belong_1 & belong_2)
+	{
+		printf("OK\n");
+		return 1;
+	}
+	else return 0;
+
+	printf("Bullshit occured in hasIntersectionTwoSegment()\n");
 	return 0;
 }
 
+
+
+/**
+ * Возвращает тип касания двух объектов, если оно есть
+ * В противном случае 0
+ * Первый аргумент - объект совершающий касание
+ * Второй аргумент - объект "принимающий" касание
+ */
+int touchingCalculator(Obj *donor, Obj *acceptor)
+{
+	if(SDL_HasIntersection(&donor->box, &acceptor->box) == SDL_FALSE) return 0; //если пересечения нет, вернёт NULL
+	SDL_Rect *intersect = calloc(1, sizeof(SDL_Rect)); //наче получаем пересечение
+	SDL_IntersectRect(&donor->box, &acceptor->box, intersect);
+
+	//далее выбираем на границе пересечения точку, перемещение которой будем отслеживать
+	SDL_Point *tracking_point = calloc(1, sizeof(SDL_Point));
+	int dx = donor->moving.x;
+	int dy = donor->moving.y;
+	printf("moving = (%i, %i)\n", dx, dy);
+	if((dy == 0)&(dx > 0))
+	{
+		printf("right center point\n");
+		tracking_point->x = intersect->x + intersect->w;
+		tracking_point->y = intersect->y + intersect->h/2;
+	}
+	if((dy > 0)&(dx > 0))
+	{
+		printf("left top point\n");
+		tracking_point->x = intersect->x + intersect->w;
+		tracking_point->y = intersect->y + intersect->h;
+	}
+	if((dy > 0)&(dx == 0))
+	{
+		printf("top center point\n");
+		tracking_point->x = intersect->x + intersect->w/2;
+		tracking_point->y = intersect->y + intersect->h;
+	}
+	if((dy > 0)&(dx < 0))
+	{
+		printf("right top point\n");
+		tracking_point->x = intersect->x;
+		tracking_point->y = intersect->y + intersect->h;
+	}
+	if((dy == 0)&(dx < 0))
+	{
+		printf("left center point\n");
+		tracking_point->x = intersect->x;
+		tracking_point->y = intersect->y + intersect->h/2;
+	}
+	if((dy < 0)&(dx < 0))
+	{
+		printf("left bottom point\n");
+		tracking_point->x = intersect->x;
+		tracking_point->y = intersect->y;
+	}
+	if((dy < 0)&(dx == 0))
+	{
+		printf("bottom center point\n");
+		tracking_point->x = intersect->x + intersect->w/2;
+		tracking_point->y = intersect->y;
+	}
+	if((dy < 0)&(dx > 0))
+	{
+		printf("left bottom point\n");
+		tracking_point->x = intersect->x + intersect->w;
+		tracking_point->y = intersect->y;
+	}
+	SDL_Point *tracking_point_before = malloc(sizeof(SDL_Point));
+	tracking_point_before->x = tracking_point->x - donor->moving.x;
+	tracking_point_before->y = tracking_point->y - donor->moving.y;
+	//точки коробки акцептора
+	SDL_Point *tl = malloc(sizeof(SDL_Point)); //верхний левый угол
+	SDL_Point *tr = malloc(sizeof(SDL_Point)); //верхний правый
+	SDL_Point *bl = malloc(sizeof(SDL_Point)); //нижний левый
+	SDL_Point *br = malloc(sizeof(SDL_Point)); //нижний правый
+	tl->x = acceptor->box.x;
+	tl->y = acceptor->box.y;
+	tr->x = acceptor->box.x + acceptor->box.w;
+	tr->y = acceptor->box.y;
+	bl->x = acceptor->box.x;
+	bl->y = acceptor->box.y + acceptor->box.h;
+	br->x = acceptor->box.x + acceptor->box.w;
+	br->y = acceptor->box.y + acceptor->box.h;
+	if(hasIntersectTwoSegment(tracking_point_before, tracking_point, tl, bl)) return LEFT_TOUCH;
+	if(hasIntersectTwoSegment(tracking_point_before, tracking_point, tl, tr)) return TOP_TOUCH;
+	if(hasIntersectTwoSegment(tracking_point_before, tracking_point, tr, br)) return RIGHT_TOUCH;
+	if(hasIntersectTwoSegment(tracking_point_before, tracking_point, bl, br)) return BOTTOM_TOUCH;
+	return 0;
+}
