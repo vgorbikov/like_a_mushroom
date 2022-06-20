@@ -50,6 +50,9 @@
 #define RUN_RIGHT 1
 #define RUN_LEFT 2
 #define JUMP 3
+#define GRAVITATION 4
+
+#define FALL_SPEED 280
 
 typedef struct Line
 {
@@ -104,13 +107,14 @@ typedef struct Eventlist
  */
 typedef struct Object
 {
-	SDL_Rect box;
+	SDL_Rect box; //одновременно вместилище текстуры объекта и его хитбокс
 	int type;
 	float x_speed, y_speed; //скорость, свойственная объекту при перемещении
 	long int last_xmove, last_ymove; //Хранит время последнего перемещения по соответствующим осям
 	SDL_Point moving; //Хранит вектор перемещания
-	ObjAnim *animation;
-	EventList *events;
+	ObjAnim *animation; //хранит структуру анимации объекта
+	EventList *events; //события, происходящие с объектом
+	struct ObjList *objects_below;
 } Obj;
 
 
@@ -132,7 +136,7 @@ typedef struct ObjListElem
  * Хранит указатели на голову и текущий элемент списка.
  * Все объекты в списке обёрнуты в структуру ObjListElement
  */
-typedef struct Objlist
+typedef struct ObjList
 {
 	OLE *head;
 	OLE *current;

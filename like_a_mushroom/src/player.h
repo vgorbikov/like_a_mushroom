@@ -8,6 +8,10 @@ Obj *initPlayer(SDL_Renderer *rend, int x, int y);
 
 int playerRun(Obj *player, int direction);
 
+int gravitation(Obj *obj);
+
+void playerTouchMonolith(Obj *player, Obj* monolith, int touch_code);
+
 int playerStop(Obj *player, int direction, long int stime);
 
 void updatePlayerRunAnim(Obj *obj, int direction);
@@ -15,6 +19,8 @@ void updatePlayerRunAnim(Obj *obj, int direction);
 void updatePlayerStaticAnim(Obj *obj);
 
 void updatePlayerJumpAnim(Obj *obj, int direction);
+
+void belowCalculator(Obj *obj);
 
 int playerEventHandler(Obj *player);
 

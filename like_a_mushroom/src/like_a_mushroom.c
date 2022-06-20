@@ -52,7 +52,7 @@ SDL_bool controlHandler(Obj *player)
 			case SDL_KEYDOWN:
 				if(event.key.keysym.sym == SDLK_RIGHT) addEventInList(player->events, RUN_RIGHT);
 				if(event.key.keysym.sym == SDLK_LEFT) addEventInList(player->events, RUN_LEFT);
-				if(event.key.keysym.sym == SDLK_UP) player->box.y -= 10; //временное решение, пока не реализованы соприкосновения и прыжки
+				if(event.key.keysym.sym == SDLK_UP) player->box.y -= 70; //временное решение, пока не реализованы прыжки
 				if(event.key.keysym.sym == SDLK_DOWN) player->box.y += 10;
 				break;
 			case SDL_KEYUP:
@@ -71,25 +71,28 @@ int main(int argc, char *argv[]) {
 	setvbuf(stdout, NULL, _IONBF, 0);
 	setvbuf(stderr, NULL, _IONBF, 0);
 
+	/*
+	 * Инициализируем окно программы и объект рендера
+	 */
 	SDL_Window *window = initWindow(SCREEN_WIDTH, SCREEN_HEIGHT);
 	SDL_Renderer *rend = NULL;
 	SDL_Texture *background = NULL;
-
-
 	rend = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 	background = IMG_LoadTexture(rend, "textures/background.bmp");
 
-
-	ObjList *g_map = mapLoad(rend); //Загрузка карты
-
-
+	/*
+	 * Загружаем карту и получаем указатель на структуру объекта-игрока
+	 */
+	ObjList *g_map = mapLoad(rend);
 	Obj *player = getPlayer(g_map); //Получение объекта игрока на карте
 
+
+	addEventInList(player->events, GRAVITATION);
 //	long int last_frame = 0;
 	while (!controlHandler(player))
 	{
+		belowCalculator(player);
 		eventHandler(g_map);
-
 		headObjInList(g_map);
 		while(g_map->current != NULL)
 		{
@@ -97,31 +100,12 @@ int main(int argc, char *argv[]) {
 			Obj *cur_obj = g_map->current->object;
 			if((SDL_HasIntersection(&player->box, &cur_obj->box)&(cur_obj != player)) == SDL_TRUE)
 			{
-				switch(touchingCalculator(player, cur_obj))
-				{
-					case TOP_TOUCH:
-						printf("top touch\n");
-						player->box.y = cur_obj->box.y - player->box.h;
-						break;
-					case LEFT_TOUCH:
-						printf("left touch\n");
-						player->box.x = cur_obj->box.x - player->box.w;
-						break;
-					case RIGHT_TOUCH:
-						printf("right touch\n");
-						player->box.x = cur_obj->box.x + cur_obj->box.w;;
-						break;
-					case BOTTOM_TOUCH:
-						printf("bottom touch\n");
-						player->box.y = cur_obj->box.y + cur_obj->box.h;
-						break;
-				}
+				playerTouchMonolith(player, cur_obj, touchingCalculator(player, cur_obj));
+
 			}
 			nextObjInList(g_map);
 		}
 
-
-		animationHandler(g_map);
 
 		SDL_RenderClear(rend);
 		SDL_RenderCopy(rend, background, NULL, NULL);
@@ -130,7 +114,17 @@ int main(int argc, char *argv[]) {
 //		printf("Частота кадров: %f кадров/сек\n", 1000/dt);
 //		last_frame = clock();
 
+
+		/*
+		 * выставляем для всех объектов анимации, соответствующие их состоянию
+		 */
+		animationHandler(g_map);
+
+
 //		printf("Start render\n");
+		/*
+		 * Отправляем все объекты на карте на отрисовку
+		 */
 		mapRender(g_map, rend);
 
 		SDL_RenderPresent(rend);

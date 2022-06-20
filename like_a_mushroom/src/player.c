@@ -26,7 +26,9 @@ Obj *initPlayer(SDL_Renderer *rend, int x, int y)
 	playerBox.w = BLOCK_SIZE;
 	Obj *player = initObject(playerBox, playerAnim, TYPE_PLAYER);
 	player->x_speed = PLAYER_RUN_SPEED;
-	printf("Player OK\n");
+	player->y_speed = FALL_SPEED;
+	player->objects_below = initObjList();
+//	printf("Player OK\n");
 	return player;
 }
 
@@ -100,6 +102,72 @@ int playerRun(Obj *player, int direction)
 }
 
 
+void playerTouchMonolith(Obj *player, Obj* monolith, int touch_code)
+{
+	switch(touch_code)
+	{
+		case TOP_TOUCH:
+//			printf("top touch obj: %i\n", monolith);
+			player->box.y = monolith->box.y - player->box.h;
+			addObjInList(player->objects_below, monolith);
+			break;
+		case LEFT_TOUCH:
+//			printf("left touch obj: %i\n", monolith);
+			player->box.x = monolith->box.x - player->box.w;
+			break;
+		case RIGHT_TOUCH:
+//			printf("right touch obj: %i\n", monolith);
+			player->box.x = monolith->box.x + monolith->box.w;
+			break;
+		case BOTTOM_TOUCH:
+//			printf("bottom touch obj: %i\n", monolith);
+			player->box.y = monolith->box.y + monolith->box.h;
+			break;
+	}
+}
+
+
+/**
+ * Перемещает объект вниз с ускорением
+ */
+int gravitation(Obj *obj)
+{
+	ObjList *below = obj->objects_below;
+	long int time = clock();
+	if(abs(time - obj->events->current->event->start_moment) <= 10) obj->last_ymove = obj->events->current->event->start_moment;
+	float tempxdt = (time - obj->last_ymove);
+	float xdt = tempxdt/1000;
+	if(!(((obj->y_speed*xdt) < 1) & (obj->y_speed*xdt > -1) & (obj->y_speed != 0)))
+	{
+		obj->moving.y = obj->y_speed*xdt;
+		obj->last_ymove = clock();
+	}
+	else obj->moving.y = 0;
+	if(below->head != NULL) return 0; //не применяем гравитацию к объектам, стоящим на монолитных блоках
+	obj->box.y += obj->moving.y;
+	return 0;
+}
+
+
+/**
+ * Проверяет, касается ли один объект другого до сих пор
+ */
+void belowCalculator(Obj *obj)
+{
+	ObjList *below = obj->objects_below;
+	headObjInList(below);
+	while(below->current != NULL)
+	{
+//		printf("below x_code: %i\n", below->current->object->box.x);
+		if(!((below->current->object->box.y == obj->box.y + obj->box.h)&(below->current->object->box.x > obj->box.x - below->current->object->box.w)&
+				(below->current->object->box.x < obj->box.x + obj->box.w))) delObjFromList(below);
+		else nextObjInList(below);
+
+	}
+	headObjInList(below);
+}
+
+
 /**
  * Обработчик событий для объектов типа TYPE_PLAYER
  */
@@ -111,6 +179,7 @@ int playerEventHandler(Obj *player)
 		ObjEvent *event = player->events->current->event;
 		if(event->event_code == RUN_RIGHT)  playerRun(player, 1);
 		if(event->event_code == RUN_LEFT)  playerRun(player, -1);
+		if(event->event_code == GRAVITATION)  gravitation(player);
 		nextEventInList(player->events);
 	}
 	headEventInList(player->events);

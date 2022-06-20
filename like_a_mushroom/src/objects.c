@@ -358,7 +358,7 @@ int hasIntersectTwoSegment(SDL_Point *begin1, SDL_Point *end1, SDL_Point *begin2
 	float k2 = dy2/dx2;
 	if((dx1 == 0)&(dx2 == 0)) //если обе линии вертикальны
 	{
-		printf("Vert&Vert\n");
+//		printf("Vert&Vert\n");
 		if(begin1->x != begin2->x) return 0; //не пересекаются
 		if(((begin1->y < begin2->y)&(begin1->y < end2->y)&(end1->y < begin2->y)&(end1->y < end2->y))||
 				((begin1->y > begin2->y)&(begin1->y > end2->y)&(end1->y > begin2->y)&(end1->y > end2->y))) return 0;
@@ -367,7 +367,7 @@ int hasIntersectTwoSegment(SDL_Point *begin1, SDL_Point *end1, SDL_Point *begin2
 	}
 	if((k1 == 0)&(k2 == 0)) //если обе линии горизонтальны
 	{
-		printf("Hor&Hor\n");
+//		printf("Hor&Hor\n");
 		if(begin1->y != begin2->y) return 0; //не пересекаются
 		if(((begin1->x < begin2->x)&(begin1->x < end2->x)&(end1->x < begin2->x)&(end1->x < end2->x))||
 				((begin1->x > begin2->x)&(begin1->x > end2->x)&(end1->x > begin2->x)&(end1->x > end2->x))) return 0;
@@ -376,25 +376,25 @@ int hasIntersectTwoSegment(SDL_Point *begin1, SDL_Point *end1, SDL_Point *begin2
 	}
 	if(dx1 == 0) //если вертикальна только первая линия
 	{
-		printf("Ver&...\n");
+//		printf("Ver&...\n");
 		x = begin1->x;
 		y = k2*(x - begin2->x) + begin2->y;
 	}
 	if(dx2 == 0) //если вертикальна только вторая линия
 	{
-		printf("...&Vert\n");
+//		printf("...&Vert\n");
 		x = begin2->x;
 		y = k1*(x - begin1->x) + begin1->y;
 	}
 	if(k1 == 0) //если горизонтальна только первая линия
 	{
-		printf("Hor&...\n");
+//		printf("Hor&...\n");
 		y = begin1->y;
 		x = (y - begin2->y + k2*begin2->x)/k2;
 	}
 	if(k2 == 0) //если горизонтальна только вторая линия
 	{
-		printf("...&Hor\n");
+//		printf("...&Hor\n");
 		y = begin2->y;
 		x = (y - begin1->y + k1*begin1->x)/k1;
 	}
@@ -417,7 +417,7 @@ int hasIntersectTwoSegment(SDL_Point *begin1, SDL_Point *end1, SDL_Point *begin2
 	int belong_2 = belong_x2 & belong_y2;
 	if(belong_1 & belong_2)
 	{
-		printf("OK\n");
+//		printf("OK\n");
 		return 1;
 	}
 	else return 0;
@@ -444,52 +444,52 @@ int touchingCalculator(Obj *donor, Obj *acceptor)
 	SDL_Point *tracking_point = calloc(1, sizeof(SDL_Point));
 	int dx = donor->moving.x;
 	int dy = donor->moving.y;
-	printf("moving = (%i, %i)\n", dx, dy);
+//	printf("moving = (%i, %i)\n", dx, dy);
 	if((dy == 0)&(dx > 0))
 	{
-		printf("right center point\n");
+//		printf("right center point\n");
 		tracking_point->x = intersect->x + intersect->w;
 		tracking_point->y = intersect->y + intersect->h/2;
 	}
 	if((dy > 0)&(dx > 0))
 	{
-		printf("left top point\n");
+//		printf("left top point\n");
 		tracking_point->x = intersect->x + intersect->w;
 		tracking_point->y = intersect->y + intersect->h;
 	}
 	if((dy > 0)&(dx == 0))
 	{
-		printf("top center point\n");
+//		printf("top center point\n");
 		tracking_point->x = intersect->x + intersect->w/2;
 		tracking_point->y = intersect->y + intersect->h;
 	}
 	if((dy > 0)&(dx < 0))
 	{
-		printf("right top point\n");
+//		printf("right top point\n");
 		tracking_point->x = intersect->x;
 		tracking_point->y = intersect->y + intersect->h;
 	}
 	if((dy == 0)&(dx < 0))
 	{
-		printf("left center point\n");
+//		printf("left center point\n");
 		tracking_point->x = intersect->x;
 		tracking_point->y = intersect->y + intersect->h/2;
 	}
 	if((dy < 0)&(dx < 0))
 	{
-		printf("left bottom point\n");
+//		printf("left bottom point\n");
 		tracking_point->x = intersect->x;
 		tracking_point->y = intersect->y;
 	}
 	if((dy < 0)&(dx == 0))
 	{
-		printf("bottom center point\n");
+//		printf("bottom center point\n");
 		tracking_point->x = intersect->x + intersect->w/2;
 		tracking_point->y = intersect->y;
 	}
 	if((dy < 0)&(dx > 0))
 	{
-		printf("left bottom point\n");
+//		printf("left bottom point\n");
 		tracking_point->x = intersect->x + intersect->w;
 		tracking_point->y = intersect->y;
 	}
