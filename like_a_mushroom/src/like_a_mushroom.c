@@ -52,7 +52,10 @@ SDL_bool controlHandler(Obj *player)
 			case SDL_KEYDOWN:
 				if(event.key.keysym.sym == SDLK_RIGHT) addEventInList(player->events, RUN_RIGHT);
 				if(event.key.keysym.sym == SDLK_LEFT) addEventInList(player->events, RUN_LEFT);
-				if(event.key.keysym.sym == SDLK_UP) player->box.y -= 70; //временное решение, пока не реализованы прыжки
+				if(event.key.keysym.sym == SDLK_UP)
+				{
+					if(player->objects_below->head != NULL) addEventInList(player->events, JUMP);
+				}
 				if(event.key.keysym.sym == SDLK_DOWN) player->box.y += 10;
 				break;
 			case SDL_KEYUP:
@@ -91,7 +94,7 @@ int main(int argc, char *argv[]) {
 //	long int last_frame = 0;
 	while (!controlHandler(player))
 	{
-		belowCalculator(player);
+		nearbyCalculator(player);
 		eventHandler(g_map);
 		headObjInList(g_map);
 		while(g_map->current != NULL)
@@ -114,7 +117,7 @@ int main(int argc, char *argv[]) {
 //		printf("Частота кадров: %f кадров/сек\n", 1000/dt);
 //		last_frame = clock();
 
-
+		movingClear(g_map);
 		/*
 		 * выставляем для всех объектов анимации, соответствующие их состоянию
 		 */

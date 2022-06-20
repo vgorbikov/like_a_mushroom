@@ -3,10 +3,13 @@
 
 #define PLAYER_RUN_SPEED 500
 #define PLAYER_RUN_ANIMATION_DURATION 500
+#define PLAYER_JUMP_SPEED 400
 
 Obj *initPlayer(SDL_Renderer *rend, int x, int y);
 
 int playerRun(Obj *player, int direction);
+
+int playerJump(Obj *player);
 
 int gravitation(Obj *obj);
 
@@ -18,9 +21,9 @@ void updatePlayerRunAnim(Obj *obj, int direction);
 
 void updatePlayerStaticAnim(Obj *obj);
 
-void updatePlayerJumpAnim(Obj *obj, int direction);
+void updatePlayerJumpAnim(Obj *obj);
 
-void belowCalculator(Obj *obj);
+void nearbyCalculator(Obj *obj);
 
 int playerEventHandler(Obj *player);
 

@@ -35,7 +35,7 @@ Obj *initObject(SDL_Rect obj_box, ObjAnim *tex, int type)
 	Obj *new_object = calloc(1, sizeof(Obj));
 	new_object->box = obj_box;
 	new_object->x_speed = 0;
-	new_object->y_speed = 0;
+	new_object->last_yspeed_upd = 0;
 	new_object->animation = tex;
 	new_object->last_xmove = clock();
 	new_object->last_ymove = clock();
@@ -313,6 +313,7 @@ int animationHandler(ObjList *list)
 			if(eventInList(list->current->object->events, RUN_RIGHT)) updatePlayerRunAnim(list->current->object, 1);
 			else if(eventInList(list->current->object->events, RUN_LEFT)) updatePlayerRunAnim(list->current->object, -1);
 			else updatePlayerStaticAnim(list->current->object);
+			if(list->current->object->objects_below->head == NULL) updatePlayerJumpAnim(list->current->object);
 		}
 		nextObjInList(list);
 	}
@@ -340,6 +341,18 @@ int eventHandler(ObjList *list)
 	return 0;
 }
 
+
+void movingClear(ObjList *list)
+{
+	headObjInList(list);
+	while(list->current != NULL)
+	{
+		list->current->object->moving.x = 0;
+		list->current->object->moving.y = 0;
+		nextObjInList(list);
+	}
+	headObjInList(list);
+}
 
 
 /**

@@ -53,6 +53,7 @@
 #define GRAVITATION 4
 
 #define FALL_SPEED 280
+#define G 1000
 
 typedef struct Line
 {
@@ -109,12 +110,14 @@ typedef struct Object
 {
 	SDL_Rect box; //одновременно вместилище текстуры объекта и его хитбокс
 	int type;
-	float x_speed, y_speed; //скорость, свойственная объекту при перемещении
-	long int last_xmove, last_ymove; //Хранит время последнего перемещения по соответствующим осям
+	float x_speed; //скорость, свойственная объекту при перемещении
+	long int last_xmove, last_ymove, last_yspeed_upd; //Хранит время последнего перемещения по соответствующим осям
 	SDL_Point moving; //Хранит вектор перемещания
 	ObjAnim *animation; //хранит структуру анимации объекта
 	EventList *events; //события, происходящие с объектом
 	struct ObjList *objects_below;
+	struct ObjList *objects_left;
+	struct ObjList *objects_right;
 } Obj;
 
 
@@ -204,6 +207,9 @@ int animationHandler(ObjList *list);
 
 
 int eventHandler(ObjList *list);
+
+
+void movingClear(ObjList *list);
 
 
 int hasIntersectTwoSegment(SDL_Point *begin1, SDL_Point *end1, SDL_Point *begin2, SDL_Point *end2);
