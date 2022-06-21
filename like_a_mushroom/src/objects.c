@@ -440,7 +440,6 @@ int hasIntersectTwoSegment(SDL_Point *begin1, SDL_Point *end1, SDL_Point *begin2
 }
 
 
-
 /**
  * Возвращает тип касания двух объектов, если оно есть
  * В противном случае 0
@@ -449,82 +448,112 @@ int hasIntersectTwoSegment(SDL_Point *begin1, SDL_Point *end1, SDL_Point *begin2
  */
 int touchingCalculator(Obj *donor, Obj *acceptor)
 {
-	if(SDL_HasIntersection(&donor->box, &acceptor->box) == SDL_FALSE) return 0; //если пересечения нет, вернёт NULL
-	SDL_Rect *intersect = calloc(1, sizeof(SDL_Rect)); //наче получаем пересечение
-	SDL_IntersectRect(&donor->box, &acceptor->box, intersect);
+	if(SDL_HasIntersection(&donor->box, &acceptor->box) == SDL_TRUE) //если есть пересечение, нужно понять с какой стороны оно пришло
+	{
+		SDL_Rect *intersect = calloc(1, sizeof(SDL_Rect)); //наче получаем пересечение
+		SDL_IntersectRect(&donor->box, &acceptor->box, intersect);
 
-	//далее выбираем на границе пересечения точку, перемещение которой будем отслеживать
-	SDL_Point *tracking_point = calloc(1, sizeof(SDL_Point));
-	int dx = donor->moving.x;
-	int dy = donor->moving.y;
-//	printf("moving = (%i, %i)\n", dx, dy);
-	if((dy == 0)&(dx > 0))
-	{
-//		printf("right center point\n");
-		tracking_point->x = intersect->x + intersect->w;
-		tracking_point->y = intersect->y + intersect->h/2;
+		//далее выбираем на границе пересечения точку, перемещение которой будем отслеживать
+		SDL_Point *tracking_point = calloc(1, sizeof(SDL_Point));
+		int dx = donor->moving.x;
+		int dy = donor->moving.y;
+		//	printf("moving = (%i, %i)\n", dx, dy);
+		if((dy == 0)&(dx > 0))
+		{
+		//		printf("right center point\n");
+			tracking_point->x = intersect->x + intersect->w;
+			tracking_point->y = intersect->y + intersect->h/2;
+		}
+		if((dy > 0)&(dx > 0))
+		{
+		//		printf("left top point\n");
+			tracking_point->x = intersect->x + intersect->w;
+			tracking_point->y = intersect->y + intersect->h;
+		}
+		if((dy > 0)&(dx == 0))
+		{
+		//		printf("top center point\n");
+			tracking_point->x = intersect->x + intersect->w/2;
+			tracking_point->y = intersect->y + intersect->h;
+		}
+		if((dy > 0)&(dx < 0))
+		{
+		//		printf("right top point\n");
+			tracking_point->x = intersect->x;
+			tracking_point->y = intersect->y + intersect->h;
+		}
+		if((dy == 0)&(dx < 0))
+		{
+		//		printf("left center point\n");
+			tracking_point->x = intersect->x;
+			tracking_point->y = intersect->y + intersect->h/2;
+		}
+		if((dy < 0)&(dx < 0))
+		{
+		//		printf("left bottom point\n");
+			tracking_point->x = intersect->x;
+			tracking_point->y = intersect->y;
+		}
+		if((dy < 0)&(dx == 0))
+		{
+		//		printf("bottom center point\n");
+			tracking_point->x = intersect->x + intersect->w/2;
+			tracking_point->y = intersect->y;
+		}
+		if((dy < 0)&(dx > 0))
+		{
+		//		printf("left bottom point\n");
+			tracking_point->x = intersect->x + intersect->w;
+			tracking_point->y = intersect->y;
+		}
+		free(intersect);
+		SDL_Point *tracking_point_before = malloc(sizeof(SDL_Point));
+		tracking_point_before->x = tracking_point->x - donor->moving.x;
+		tracking_point_before->y = tracking_point->y - donor->moving.y;
+		//точки коробки акцептора
+		SDL_Point *tl = malloc(sizeof(SDL_Point)); //верхний левый угол
+		SDL_Point *tr = malloc(sizeof(SDL_Point)); //верхний правый
+		SDL_Point *bl = malloc(sizeof(SDL_Point)); //нижний левый
+		SDL_Point *br = malloc(sizeof(SDL_Point)); //нижний правый
+		tl->x = acceptor->box.x;
+		tl->y = acceptor->box.y;
+		tr->x = acceptor->box.x + acceptor->box.w;
+		tr->y = acceptor->box.y;
+		bl->x = acceptor->box.x;
+		bl->y = acceptor->box.y + acceptor->box.h;
+		br->x = acceptor->box.x + acceptor->box.w;
+		br->y = acceptor->box.y + acceptor->box.h;
+		if(hasIntersectTwoSegment(tracking_point_before, tracking_point, tl, bl)) return LEFT_TOUCH;
+		if(hasIntersectTwoSegment(tracking_point_before, tracking_point, tl, tr)) return TOP_TOUCH;
+		if(hasIntersectTwoSegment(tracking_point_before, tracking_point, tr, br)) return RIGHT_TOUCH;
+		if(hasIntersectTwoSegment(tracking_point_before, tracking_point, bl, br)) return BOTTOM_TOUCH;
 	}
-	if((dy > 0)&(dx > 0))
-	{
-//		printf("left top point\n");
-		tracking_point->x = intersect->x + intersect->w;
-		tracking_point->y = intersect->y + intersect->h;
-	}
-	if((dy > 0)&(dx == 0))
-	{
-//		printf("top center point\n");
-		tracking_point->x = intersect->x + intersect->w/2;
-		tracking_point->y = intersect->y + intersect->h;
-	}
-	if((dy > 0)&(dx < 0))
-	{
-//		printf("right top point\n");
-		tracking_point->x = intersect->x;
-		tracking_point->y = intersect->y + intersect->h;
-	}
-	if((dy == 0)&(dx < 0))
-	{
-//		printf("left center point\n");
-		tracking_point->x = intersect->x;
-		tracking_point->y = intersect->y + intersect->h/2;
-	}
-	if((dy < 0)&(dx < 0))
-	{
-//		printf("left bottom point\n");
-		tracking_point->x = intersect->x;
-		tracking_point->y = intersect->y;
-	}
-	if((dy < 0)&(dx == 0))
-	{
-//		printf("bottom center point\n");
-		tracking_point->x = intersect->x + intersect->w/2;
-		tracking_point->y = intersect->y;
-	}
-	if((dy < 0)&(dx > 0))
-	{
-//		printf("left bottom point\n");
-		tracking_point->x = intersect->x + intersect->w;
-		tracking_point->y = intersect->y;
-	}
-	SDL_Point *tracking_point_before = malloc(sizeof(SDL_Point));
-	tracking_point_before->x = tracking_point->x - donor->moving.x;
-	tracking_point_before->y = tracking_point->y - donor->moving.y;
-	//точки коробки акцептора
-	SDL_Point *tl = malloc(sizeof(SDL_Point)); //верхний левый угол
-	SDL_Point *tr = malloc(sizeof(SDL_Point)); //верхний правый
-	SDL_Point *bl = malloc(sizeof(SDL_Point)); //нижний левый
-	SDL_Point *br = malloc(sizeof(SDL_Point)); //нижний правый
-	tl->x = acceptor->box.x;
-	tl->y = acceptor->box.y;
-	tr->x = acceptor->box.x + acceptor->box.w;
-	tr->y = acceptor->box.y;
-	bl->x = acceptor->box.x;
-	bl->y = acceptor->box.y + acceptor->box.h;
-	br->x = acceptor->box.x + acceptor->box.w;
-	br->y = acceptor->box.y + acceptor->box.h;
-	if(hasIntersectTwoSegment(tracking_point_before, tracking_point, tl, bl)) return LEFT_TOUCH;
-	if(hasIntersectTwoSegment(tracking_point_before, tracking_point, tl, tr)) return TOP_TOUCH;
-	if(hasIntersectTwoSegment(tracking_point_before, tracking_point, tr, br)) return RIGHT_TOUCH;
-	if(hasIntersectTwoSegment(tracking_point_before, tracking_point, bl, br)) return BOTTOM_TOUCH;
+
+	if(((acceptor->box.y == donor->box.y + donor->box.h)&(acceptor->box.x > donor->box.x - acceptor->box.w)&
+			(acceptor->box.x < donor->box.x + donor->box.w))) return TOP_TOUCH;
+
+	if(((acceptor->box.x == donor->box.x - acceptor->box.w)&(acceptor->box.y + acceptor->box.h > donor->box.y)&
+			(acceptor->box.y < donor->box.y + donor->box.h))) return RIGHT_TOUCH;
+
+	if(((acceptor->box.x == donor->box.x + donor->box.w)&(acceptor->box.y + acceptor->box.h > donor->box.y)&
+			(acceptor->box.y < donor->box.y + donor->box.h))) return LEFT_TOUCH;
+
 	return 0;
 }
+
+
+///**
+// * Принимает список объектов на карте и просчитывает их касания с игроком
+// */
+//void touchingHandler(ObjList *objlist, Obj *player)
+//{
+//	headObjInList(objlist);
+//	while(objlist->current != NULL)
+//	{
+//		Obj *cur = objlist->current->object;
+//
+//		nextObjInList(objlist);
+//	}
+//
+//
+//}

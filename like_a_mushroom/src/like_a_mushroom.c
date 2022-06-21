@@ -54,7 +54,8 @@ SDL_bool controlHandler(Obj *player)
 				if(event.key.keysym.sym == SDLK_LEFT) addEventInList(player->events, RUN_LEFT);
 				if(event.key.keysym.sym == SDLK_UP)
 				{
-					if(player->objects_below->head != NULL) addEventInList(player->events, JUMP);
+					player->box.y -= 10;
+//					if(player->objects_below->head != NULL) addEventInList(player->events, JUMP);
 				}
 				if(event.key.keysym.sym == SDLK_DOWN) player->box.y += 10;
 				break;
@@ -94,21 +95,17 @@ int main(int argc, char *argv[]) {
 //	long int last_frame = 0;
 	while (!controlHandler(player))
 	{
+//		if(player->objects_below->head != NULL) printf("Start touch calculation\n");
 		nearbyCalculator(player);
 		eventHandler(g_map);
 		headObjInList(g_map);
 		while(g_map->current != NULL)
 		{
-
 			Obj *cur_obj = g_map->current->object;
-			if((SDL_HasIntersection(&player->box, &cur_obj->box)&(cur_obj != player)) == SDL_TRUE)
-			{
-				playerTouchMonolith(player, cur_obj, touchingCalculator(player, cur_obj));
-
-			}
+			if(cur_obj != player) playerTouchMonolith(player, cur_obj, touchingCalculator(player, cur_obj));
 			nextObjInList(g_map);
 		}
-
+//		if(player->objects_below->head != NULL) printf("End touch calculation\n");
 
 		SDL_RenderClear(rend);
 		SDL_RenderCopy(rend, background, NULL, NULL);

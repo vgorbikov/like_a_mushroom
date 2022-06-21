@@ -130,20 +130,29 @@ void playerTouchMonolith(Obj *player, Obj* monolith, int touch_code)
 	switch(touch_code)
 	{
 		case TOP_TOUCH:
-			printf("top touch obj: %i\n", monolith);
 			dy = monolith->box.y - player->box.y - player->box.h;
-			addObjInList(player->objects_below, monolith);
+			if(!objInList(player->objects_below, monolith))
+			{
+				addObjInList(player->objects_below, monolith);
+				printf("top touch obj: %i\n", monolith);
+			}
 			delEventFromList(player->events, JUMP);
 			break;
 		case LEFT_TOUCH:
-			printf("left touch obj: %i\n", monolith);
 			dx = monolith->box.x - player->box.x - player->box.w;
-			addObjInList(player->objects_right, monolith);
+			if(!objInList(player->objects_right, monolith))
+			{
+				addObjInList(player->objects_right, monolith);
+				printf("left touch obj: %i\n", monolith);
+			}
 			break;
 		case RIGHT_TOUCH:
-			printf("right touch obj: %i\n", monolith);
 			dx = monolith->box.w - player->box.x + monolith->box.x;
-			addObjInList(player->objects_left, monolith);
+			if(!objInList(player->objects_left, monolith))
+			{
+				addObjInList(player->objects_left, monolith);
+				printf("right touch obj: %i\n", monolith);
+			}
 			break;
 		case BOTTOM_TOUCH:
 			printf("bottom touch obj: %i\n", monolith);
