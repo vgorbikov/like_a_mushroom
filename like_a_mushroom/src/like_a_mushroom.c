@@ -95,17 +95,12 @@ int main(int argc, char *argv[]) {
 //	long int last_frame = 0;
 	while (!controlHandler(player))
 	{
-//		if(player->objects_below->head != NULL) printf("Start touch calculation\n");
+
 		nearbyCalculator(player);
 		eventHandler(g_map);
 		headObjInList(g_map);
-		while(g_map->current != NULL)
-		{
-			Obj *cur_obj = g_map->current->object;
-			if(cur_obj != player) playerTouchMonolith(player, cur_obj, touchingCalculator(player, cur_obj));
-			nextObjInList(g_map);
-		}
-//		if(player->objects_below->head != NULL) printf("End touch calculation\n");
+
+		touchingHandler(g_map, player);
 
 		SDL_RenderClear(rend);
 		SDL_RenderCopy(rend, background, NULL, NULL);

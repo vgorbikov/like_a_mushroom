@@ -123,8 +123,9 @@ int playerJump(Obj *player)
 }
 
 
-void playerTouchMonolith(Obj *player, Obj* monolith, int touch_code)
+int *playerTouchMonolith(Obj *player, Obj* monolith, int touch_code)
 {
+	int *correct = calloc(2, sizeof(int));
 	int dx = 0;
 	int dy = 0;
 	switch(touch_code)
@@ -159,10 +160,9 @@ void playerTouchMonolith(Obj *player, Obj* monolith, int touch_code)
 			dy = monolith->box.h - player->box.y + monolith->box.y;
 			break;
 	}
-	player->box.x += dx;
-	player->box.y += dy;
-	player->moving.x += dx;
-	player->moving.y += dy;
+	correct[1] = dx;
+	correct[2] = dy;
+	return correct;
 }
 
 

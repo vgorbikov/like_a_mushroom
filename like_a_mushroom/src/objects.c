@@ -542,18 +542,26 @@ int touchingCalculator(Obj *donor, Obj *acceptor)
 }
 
 
-///**
-// * Принимает список объектов на карте и просчитывает их касания с игроком
-// */
-//void touchingHandler(ObjList *objlist, Obj *player)
-//{
-//	headObjInList(objlist);
-//	while(objlist->current != NULL)
-//	{
-//		Obj *cur = objlist->current->object;
-//
-//		nextObjInList(objlist);
-//	}
-//
-//
-//}
+/**
+ * Принимает список объектов на карте и просчитывает их касания с игроком
+ */
+void touchingHandler(ObjList *objlist, Obj *player)
+{
+	headObjInList(objlist);
+	int dx = 0;
+	int dy = 0;
+	while(objlist->current != NULL)
+	{
+		Obj *cur = objlist->current->object;
+		if(cur != player)
+		{
+			int *correct = playerTouchMonolith(player, cur, touchingCalculator(player, cur));
+			if(((correct[1] > dx)&(dx>0))||((correct[1] < dx)&(dx<0))||(dx == 0)) dx = correct[1];
+			if(((correct[2] > dy)&(dy>0))||((correct[2] < dy)&(dy<0))||(dy == 0)) dy = correct[2];
+			free(correct);
+		}
+		nextObjInList(objlist);
+	}
+	player->box.x += dx;
+	player->box.y += dy;
+}

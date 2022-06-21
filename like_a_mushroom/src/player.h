@@ -13,7 +13,7 @@ int playerJump(Obj *player);
 
 int gravitation(Obj *obj);
 
-void playerTouchMonolith(Obj *player, Obj* monolith, int touch_code);
+int *playerTouchMonolith(Obj *player, Obj* monolith, int touch_code);
 
 int playerStop(Obj *player, int direction, long int stime);
 

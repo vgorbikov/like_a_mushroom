@@ -217,4 +217,7 @@ int hasIntersectTwoSegment(SDL_Point *begin1, SDL_Point *end1, SDL_Point *begin2
 
 int touchingCalculator(Obj *obj1, Obj *obj2);
 
+
+void touchingHandler(ObjList *objlist, Obj *player);
+
 #endif
