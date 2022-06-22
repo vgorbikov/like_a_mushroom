@@ -25,7 +25,7 @@ Obj *initPlayer(SDL_Renderer *rend, int x, int y)
 	playerBox.h = BLOCK_SIZE;
 	playerBox.w = BLOCK_SIZE;
 	Obj *player = initObject(playerBox, playerAnim, TYPE_PLAYER);
-	player->x_speed = PLAYER_RUN_SPEED;
+	player->x_speed = 0;
 	player->objects_below = initObjList();
 	player->objects_right = initObjList();
 	player->objects_left = initObjList();
@@ -98,8 +98,8 @@ int playerRun(Obj *player, int direction)
 
 int playerJump(Obj *player)
 {
-	printf("JUMP!!!\n");
-	player->y_speed -= 500;
+//	printf("JUMP!!!\n");
+	player->y_speed -= 800;
 	return 0;
 }
 
@@ -116,7 +116,7 @@ int *playerTouchMonolith(Obj *player, Obj* monolith, int touch_code)
 			if(!objInList(player->objects_below, monolith))
 			{
 				addObjInList(player->objects_below, monolith);
-				printf("top touch obj: %i\n", monolith);
+//				printf("top touch obj: %i\n", monolith);
 			}
 			delEventFromList(player->events, JUMP);
 			break;
@@ -125,7 +125,7 @@ int *playerTouchMonolith(Obj *player, Obj* monolith, int touch_code)
 			if(!objInList(player->objects_right, monolith))
 			{
 				addObjInList(player->objects_right, monolith);
-				printf("left touch obj: %i\n", monolith);
+//				printf("left touch obj: %i\n", monolith);
 			}
 			break;
 		case RIGHT_TOUCH:
@@ -133,7 +133,7 @@ int *playerTouchMonolith(Obj *player, Obj* monolith, int touch_code)
 			if(!objInList(player->objects_left, monolith))
 			{
 				addObjInList(player->objects_left, monolith);
-				printf("right touch obj: %i\n", monolith);
+//				printf("right touch obj: %i\n", monolith);
 			}
 			break;
 		case BOTTOM_TOUCH:
@@ -141,8 +141,9 @@ int *playerTouchMonolith(Obj *player, Obj* monolith, int touch_code)
 			if(!objInList(player->objects_over, monolith))
 			{
 				addObjInList(player->objects_over, monolith);
-				printf("bottom touch obj: %i\n", monolith);
+//				printf("bottom touch obj: %i\n", monolith);
 			}
+			delEventFromList(player->events, JUMP);
 			break;
 	}
 	correct[1] = dx;
@@ -158,8 +159,6 @@ int gravitation(Obj *obj)
 {
 	long int time = clock();
 	if(obj->objects_below->head != NULL) obj->events->current->event->start_moment = time;
-//	float tempdt = (time - obj->last_ymove);
-//	float dt = tempdt/1000;
 	obj->y_speed += G*(time - obj->events->current->event->start_moment)/1000;
 	return 0;
 }
@@ -230,8 +229,8 @@ int playerEventHandler(Obj *player)
 	while(player->events->current != NULL)
 	{
 		ObjEvent *event = player->events->current->event;
-		if(event->event_code == RUN_RIGHT)  playerRun(player, 500);
-		if(event->event_code == RUN_LEFT)  playerRun(player, -500);
+		if(event->event_code == RUN_RIGHT)  playerRun(player, PLAYER_RUN_SPEED);
+		if(event->event_code == RUN_LEFT)  playerRun(player, -PLAYER_RUN_SPEED);
 		if(event->event_code == JUMP)  playerJump(player);
 		if(event->event_code == GRAVITATION)  gravitation(player);
 		nextEventInList(player->events);

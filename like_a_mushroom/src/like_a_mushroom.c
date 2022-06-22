@@ -12,10 +12,12 @@
 #include <stdlib.h>
 #include <SDL.h>
 #include <SDL_image.h>
+#include <SDL_ttf.h>
 #include <time.h>
 #include "objects.h"
 #include "map_funcs.h"
 #include "player.h"
+#include "status_bar.h"
 
 
 SDL_Window *initWindow(int WIDTH, int HEIGHT)
@@ -27,6 +29,7 @@ SDL_Window *initWindow(int WIDTH, int HEIGHT)
 		window = SDL_CreateWindow("Moshroom rewenge", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, SDL_WINDOW_SHOWN);
 		if(window == NULL) printf("Ошибка создания окна:\n%s\n", SDL_GetError());
 	}
+	if(TTF_Init() != 0) printf("TTF_Init ERROR\n");
 	return window;
 }
 
@@ -49,13 +52,10 @@ SDL_bool controlHandler(Obj *player)
 					if(player->objects_below->head != NULL) addEventInList(player->events, JUMP);
 //					player->box.y -= 50;
 				}
-				if(event.key.keysym.sym == SDLK_DOWN) player->box.y += 10;
 				break;
 			case SDL_KEYUP:
 				if(event.key.keysym.sym == SDLK_RIGHT) delEventFromList(player->events, RUN_RIGHT);
 				if(event.key.keysym.sym == SDLK_LEFT) delEventFromList(player->events, RUN_LEFT);
-//				if(event.key.keysym.sym == SDLK_UP) something;
-//				if(event.key.keysym.sym == SDLK_DOWN) something;
 				break;
 		}
 	}
@@ -75,6 +75,7 @@ int main(int argc, char *argv[]) {
 	SDL_Texture *background = NULL;
 	rend = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 	background = IMG_LoadTexture(rend, "textures/background.bmp");
+	StatusBar *bar = initStatusBar(1, 1, 300);
 
 	/*
 	 * Загружаем карту и получаем указатель на структуру объекта-игрока
@@ -87,7 +88,6 @@ int main(int argc, char *argv[]) {
 //	long int last_frame = 0;
 	while (!controlHandler(player))
 	{
-
 		nearbyCalculator(player);
 
 		eventHandler(g_map);
@@ -98,6 +98,7 @@ int main(int argc, char *argv[]) {
 
 		SDL_RenderClear(rend);
 		SDL_RenderCopy(rend, background, NULL, NULL);
+
 
 //		float dt = clock() - last_frame;
 //		printf("Частота кадров: %f кадров/сек\n", 1000/dt);
@@ -116,7 +117,7 @@ int main(int argc, char *argv[]) {
 		 * Отправляем все объекты на карте на отрисовку
 		 */
 		mapRender(g_map, rend);
-
+		addSBarToRender(bar, rend, SCREEN_WIDTH, SCREEN_HEIGHT);
 		SDL_RenderPresent(rend);
 		SDL_Delay(1);
 	}

@@ -17,6 +17,7 @@
 #define STONE_TEXTURE "textures/stone.png"
 #define WOOD_TEXTURE "textures/wood.png"
 #define PLAYER_TEXTURE "textures/player_anim.png"
+#define MARIO_TEXTURE "textures/mario_anim.png"
 
 
 /*
@@ -53,7 +54,7 @@
 #define GRAVITATION 4
 
 #define FALL_SPEED 280
-#define G 1000
+#define G 1800
 
 typedef struct Line
 {
