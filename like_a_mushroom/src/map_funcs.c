@@ -90,3 +90,24 @@ int mapRender(ObjList *map, SDL_Renderer *rend)
 	headObjInList(map);
 	return 0;
 }
+
+
+/**
+ * Двигает карту по оси x на заданную величину
+ */
+void moveMap(ObjList *map, int dx)
+{
+	headObjInList(map);
+	while(map->current != NULL)
+	{
+		map->current->object->box.x += dx;
+		nextObjInList(map);
+	}
+}
+
+
+void trackThePlayer(ObjList *map, Obj *player)
+{
+	int dx = player->box.x + player->box.w/2 - SCREEN_WIDTH/2;
+	if(dx > 0) moveMap(map, -dx);
+}

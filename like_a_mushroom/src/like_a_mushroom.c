@@ -18,10 +18,6 @@
 #include "player.h"
 
 
-const int SCREEN_WIDTH = 1280;
-const int SCREEN_HEIGHT = 720;
-
-
 SDL_Window *initWindow(int WIDTH, int HEIGHT)
 {
 	SDL_Window *window = NULL;
@@ -107,6 +103,7 @@ int main(int argc, char *argv[]) {
 //		printf("Частота кадров: %f кадров/сек\n", 1000/dt);
 //		last_frame = clock();
 
+		trackThePlayer(g_map, player);
 		movingClear(g_map);
 		/*
 		 * выставляем для всех объектов анимации, соответствующие их состоянию
