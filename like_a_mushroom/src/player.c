@@ -29,6 +29,7 @@ Obj *initPlayer(SDL_Renderer *rend, int x, int y)
 	player->objects_below = initObjList();
 	player->objects_right = initObjList();
 	player->objects_left = initObjList();
+	player->objects_over = initObjList();
 //	printf("Player OK\n");
 	return player;
 }
@@ -88,19 +89,9 @@ int playerRun(Obj *player, int direction)
 {
 	ObjList *left = player->objects_left;
 	ObjList *right = player->objects_right;
-	long int time = clock();
-	if(abs(time - player->events->current->event->start_moment) <= 10) player->last_xmove = player->events->current->event->start_moment;
-	float tempxdt = (time - player->last_xmove);
-	float xdt = tempxdt/1000;
-	if(!(((player->x_speed*xdt*direction) < 1) & (player->x_speed*xdt*direction > -1) & (player->x_speed != 0)))
-	{
-		player->moving.x = player->x_speed*xdt*direction;
-		player->last_xmove = clock();
-	}
-	else player->moving.x = 0;
 	if((left->head != NULL)&(direction < 0)) return 0;
 	if((right->head != NULL)&(direction > 0)) return 0;
-	player->box.x += player->moving.x;
+	player->x_speed += direction;
 	return 0;
 }
 
@@ -108,17 +99,7 @@ int playerRun(Obj *player, int direction)
 int playerJump(Obj *player)
 {
 	printf("JUMP!!!\n");
-	long int time = clock();
-	if(abs(time - player->events->current->event->start_moment) <= 10) player->last_ymove = player->events->current->event->start_moment;
-	float tempdt = (time - player->last_ymove);
-	float dt = tempdt/1000;
-	if(!(((PLAYER_JUMP_SPEED*dt) < 1) & (PLAYER_JUMP_SPEED*dt > -1)))
-	{
-		player->moving.y += PLAYER_JUMP_SPEED*dt*(-1);
-		player->last_ymove = clock();
-	}
-	else player->moving.y += 0;
-	player->box.y += player->moving.y;
+	player->y_speed -= 500;
 	return 0;
 }
 
@@ -156,8 +137,12 @@ int *playerTouchMonolith(Obj *player, Obj* monolith, int touch_code)
 			}
 			break;
 		case BOTTOM_TOUCH:
-			printf("bottom touch obj: %i\n", monolith);
 			dy = monolith->box.h - player->box.y + monolith->box.y;
+			if(!objInList(player->objects_over, monolith))
+			{
+				addObjInList(player->objects_over, monolith);
+				printf("bottom touch obj: %i\n", monolith);
+			}
 			break;
 	}
 	correct[1] = dx;
@@ -171,28 +156,11 @@ int *playerTouchMonolith(Obj *player, Obj* monolith, int touch_code)
  */
 int gravitation(Obj *obj)
 {
-	ObjList *below = obj->objects_below;
 	long int time = clock();
-	if(abs(time - obj->events->current->event->start_moment) <= 10)
-	{
-		obj->last_yspeed_upd = obj->events->current->event->start_moment;
-		obj->last_ymove = obj->events->current->event->start_moment;
-	}
-	float tempdt = (time - obj->last_ymove);
-	float dt = tempdt/1000;
-	float y_speed = G*(time - obj->last_yspeed_upd)/1000;
-	if(!(((y_speed*dt) < 1) & (y_speed*dt > -1) & (y_speed != 0)))
-	{
-		obj->moving.y += y_speed*dt;
-		obj->last_ymove = clock();
-	}
-	else obj->moving.y += 0;
-	if(below->head != NULL)
-	{
-		obj->last_yspeed_upd = time;
-		return 0; //не применяем гравитацию к объектам, стоящим на монолитных блоках
-	}
-	obj->box.y += obj->moving.y;
+	if(obj->objects_below->head != NULL) obj->events->current->event->start_moment = time;
+//	float tempdt = (time - obj->last_ymove);
+//	float dt = tempdt/1000;
+	obj->y_speed += G*(time - obj->events->current->event->start_moment)/1000;
 	return 0;
 }
 
@@ -205,6 +173,7 @@ void nearbyCalculator(Obj *obj)
 	ObjList *below = obj->objects_below;
 	ObjList *left = obj->objects_left;
 	ObjList *right = obj->objects_right;
+	ObjList *over = obj->objects_over;
 //	int count_b;
 	headObjInList(below);
 	while(below->current != NULL)
@@ -217,7 +186,6 @@ void nearbyCalculator(Obj *obj)
 
 	}
 	headObjInList(below);
-//	printf("Below count: %i\n", count_b);
 	headObjInList(left);
 	while(left->current != NULL)
 	{
@@ -238,6 +206,18 @@ void nearbyCalculator(Obj *obj)
 
 	}
 	headObjInList(right);
+	headObjInList(over);
+	while(over->current != NULL)
+	{
+//		count_b += 1;
+//		printf("below x_code: %i\n", below->current->object->box.x);
+		if(!((over->current->object->box.y + over->current->object->box.h == obj->box.y)&(over->current->object->box.x > obj->box.x - over->current->object->box.w)&
+				(over->current->object->box.x < obj->box.x + obj->box.w))) delObjFromList(over);
+		else nextObjInList(over);
+
+	}
+	headObjInList(over);
+//	printf("Over count: %i\n", count_b);
 }
 
 
@@ -250,10 +230,10 @@ int playerEventHandler(Obj *player)
 	while(player->events->current != NULL)
 	{
 		ObjEvent *event = player->events->current->event;
-		if(event->event_code == RUN_RIGHT)  playerRun(player, 1);
-		if(event->event_code == RUN_LEFT)  playerRun(player, -1);
-		if(event->event_code == GRAVITATION)  gravitation(player);
+		if(event->event_code == RUN_RIGHT)  playerRun(player, 500);
+		if(event->event_code == RUN_LEFT)  playerRun(player, -500);
 		if(event->event_code == JUMP)  playerJump(player);
+		if(event->event_code == GRAVITATION)  gravitation(player);
 		nextEventInList(player->events);
 	}
 	headEventInList(player->events);

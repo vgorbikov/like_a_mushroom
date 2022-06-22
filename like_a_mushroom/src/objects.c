@@ -35,6 +35,7 @@ Obj *initObject(SDL_Rect obj_box, ObjAnim *tex, int type)
 	Obj *new_object = calloc(1, sizeof(Obj));
 	new_object->box = obj_box;
 	new_object->x_speed = 0;
+	new_object->y_speed = 0;
 	new_object->last_yspeed_upd = 0;
 	new_object->animation = tex;
 	new_object->last_xmove = clock();
@@ -349,6 +350,8 @@ void movingClear(ObjList *list)
 	{
 		list->current->object->moving.x = 0;
 		list->current->object->moving.y = 0;
+		list->current->object->x_speed = 0;
+		list->current->object->y_speed = 0;
 		nextObjInList(list);
 	}
 	headObjInList(list);
@@ -538,6 +541,9 @@ int touchingCalculator(Obj *donor, Obj *acceptor)
 	if(((acceptor->box.x == donor->box.x + donor->box.w)&(acceptor->box.y + acceptor->box.h > donor->box.y)&
 			(acceptor->box.y < donor->box.y + donor->box.h))) return LEFT_TOUCH;
 
+	if(((acceptor->box.y + acceptor->box.h == donor->box.y)&(acceptor->box.x > donor->box.x - acceptor->box.w)&
+					(acceptor->box.x < donor->box.x + donor->box.w))) return BOTTOM_TOUCH;
+
 	return 0;
 }
 
@@ -564,4 +570,33 @@ void touchingHandler(ObjList *objlist, Obj *player)
 	}
 	player->box.x += dx;
 	player->box.y += dy;
+}
+
+int movingCalculator(Obj *obj)
+{
+	long int time = clock();
+
+	float tempydt = (time - obj->last_ymove);
+	float ydt = tempydt/1000;
+	if(!(((obj->y_speed*ydt) < 1) & (obj->y_speed*ydt > -1) & (obj->y_speed != 0)))
+	{
+		obj->moving.y += obj->y_speed*ydt;
+		obj->last_ymove = clock();
+	}
+	else obj->moving.y += 0;
+
+	float tempxdt = (time - obj->last_xmove);
+	float xdt = tempxdt/1000;
+	if(!(((obj->x_speed*xdt) < 1) & (obj->x_speed*xdt > -1) & (obj->x_speed != 0)))
+	{
+		obj->moving.x += obj->x_speed*xdt;
+		obj->last_xmove = clock();
+	}
+	else obj->moving.x += 0;
+
+	if((obj->objects_below->head == NULL)&(obj->moving.y > 0)) obj->box.y += obj->moving.y;
+	if((obj->objects_over->head == NULL)&(obj->moving.y < 0)) obj->box.y += obj->moving.y;
+	if((obj->objects_left->head == NULL)&(obj->moving.x < 0)) obj->box.x += obj->moving.x;
+	if((obj->objects_right->head == NULL)&(obj->moving.x > 0)) obj->box.x += obj->moving.x;
+	return 0;
 }

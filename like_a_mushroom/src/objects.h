@@ -110,7 +110,7 @@ typedef struct Object
 {
 	SDL_Rect box; //одновременно вместилище текстуры объекта и его хитбокс
 	int type;
-	float x_speed; //скорость, свойственная объекту при перемещении
+	float x_speed, y_speed;
 	long int last_xmove, last_ymove, last_yspeed_upd; //Хранит время последнего перемещения по соответствующим осям
 	SDL_Point moving; //Хранит вектор перемещания
 	ObjAnim *animation; //хранит структуру анимации объекта
@@ -118,6 +118,7 @@ typedef struct Object
 	struct ObjList *objects_below;
 	struct ObjList *objects_left;
 	struct ObjList *objects_right;
+	struct ObjList *objects_over;
 } Obj;
 
 
@@ -155,6 +156,10 @@ ObjAnim *initObjAnim(SDL_Renderer *rend, char *path, SDL_Rect *rect);
 Obj *initObject(SDL_Rect obj_box, ObjAnim *tex, int type);
 
 
+/*
+ * Функции для списков объектов
+ */
+
 OLE *initOLE(Obj *obj);
 
 
@@ -178,6 +183,9 @@ int delObjList(ObjList *list);
 
 int objInList(ObjList *list, Obj *obj);
 
+/*
+ * Функции для списков событий
+ */
 
 ELE *initELE(ObjEvent *obj);
 
@@ -202,6 +210,9 @@ int delEventList(EventList *list);
 
 int eventInList(EventList *list, int event_code);
 
+/*
+ * Функции - обработчики
+ */
 
 int animationHandler(ObjList *list);
 
@@ -219,5 +230,7 @@ int touchingCalculator(Obj *obj1, Obj *obj2);
 
 
 void touchingHandler(ObjList *objlist, Obj *player);
+
+int movingCalculator(Obj *obj);
 
 #endif

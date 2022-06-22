@@ -34,10 +34,6 @@ SDL_Window *initWindow(int WIDTH, int HEIGHT)
 	return window;
 }
 
-#define BUTTON_PRESSED 1
-#define BUTTON_UNPRESSED 0
-
-int left_arrow, up_arrow, right_arrow, down_arrow;
 
 SDL_bool controlHandler(Obj *player)
 {
@@ -54,8 +50,8 @@ SDL_bool controlHandler(Obj *player)
 				if(event.key.keysym.sym == SDLK_LEFT) addEventInList(player->events, RUN_LEFT);
 				if(event.key.keysym.sym == SDLK_UP)
 				{
-					player->box.y -= 10;
-//					if(player->objects_below->head != NULL) addEventInList(player->events, JUMP);
+					if(player->objects_below->head != NULL) addEventInList(player->events, JUMP);
+//					player->box.y -= 50;
 				}
 				if(event.key.keysym.sym == SDLK_DOWN) player->box.y += 10;
 				break;
@@ -97,8 +93,10 @@ int main(int argc, char *argv[]) {
 	{
 
 		nearbyCalculator(player);
+
 		eventHandler(g_map);
-		headObjInList(g_map);
+
+		movingCalculator(player);
 
 		touchingHandler(g_map, player);
 
