@@ -7,6 +7,8 @@
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
 
+#define MAP1_TIME 300
+
 
 ObjList *mapLoad(SDL_Renderer *rend);
 

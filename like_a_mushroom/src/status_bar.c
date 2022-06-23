@@ -12,47 +12,64 @@ StatusBar *initStatusBar(int world, int room, int time, SDL_Renderer *rend)
 {
 	StatusBar *bar = malloc(sizeof(StatusBar));
 	bar->coins = 0;
-	bar->score = 0;
+	bar->score = 2500;
 	bar->world = world;
 	bar->room = room;
 	bar->lives = 3;
 	bar->time = time;
 	bar->font = TTF_OpenFont("textures/main_font.ttf", 20);
-
 	SDL_Surface *load_surf;
-	SDL_Color text_color;
-	text_color.r = 0;
-	text_color.g = 0;
-	text_color.b = 0;
-	text_color.a = 0;
-	SDL_Color bg_color;
-	bg_color.a = 1;
+	bar->txt_color.r = 0;
+	bar->txt_color.g = 0;
+	bar->txt_color.b = 0;
+	bar->txt_color.a = 0;
+	bar->bg_color.a = 1;
+	char buf[10];
 	for(int i = 1; i <= 5; i += 1)
 	{
 		if(i == 1)
 		{
-			load_surf = TTF_RenderText_Shaded(bar->font, "SCORE", text_color, bg_color);
+			load_surf = TTF_RenderText_Shaded(bar->font, "SCORE", bar->txt_color, bar->bg_color);
 			bar->score_tex = SDL_CreateTextureFromSurface(rend, load_surf);
+			free(load_surf);
+			sprintf(buf, "%i", bar->score);
+			load_surf = TTF_RenderText_Shaded(bar->font, buf, bar->txt_color, bar->bg_color);
+			bar->score_counter_tex = SDL_CreateTextureFromSurface(rend, load_surf);
 		}
 		if(i == 2)
 		{
-			load_surf = TTF_RenderText_Shaded(bar->font, "COINS", text_color, bg_color);
+			load_surf = TTF_RenderText_Shaded(bar->font, "COINS", bar->txt_color, bar->bg_color);
 			bar->coins_tex = SDL_CreateTextureFromSurface(rend, load_surf);
+			free(load_surf);
+			sprintf(buf, "%i", bar->coins);
+			load_surf = TTF_RenderText_Shaded(bar->font, buf, bar->txt_color, bar->bg_color);
+			bar->coins_counter_tex = SDL_CreateTextureFromSurface(rend, load_surf);
 		}
 		if(i == 3)
 		{
-			load_surf = TTF_RenderText_Shaded(bar->font, "WORLD", text_color, bg_color);
+			load_surf = TTF_RenderText_Shaded(bar->font, "WORLD", bar->txt_color, bar->bg_color);
 			bar->world_tex = SDL_CreateTextureFromSurface(rend, load_surf);
+			free(load_surf);
+			load_surf = TTF_RenderText_Shaded(bar->font, "0", bar->txt_color, bar->bg_color);
+			bar->world_counter_tex = SDL_CreateTextureFromSurface(rend, load_surf);
 		}
 		if(i == 4)
 		{
-			load_surf = TTF_RenderText_Shaded(bar->font, "TIME", text_color, bg_color);
+			load_surf = TTF_RenderText_Shaded(bar->font, "TIME", bar->txt_color, bar->bg_color);
 			bar->time_tex = SDL_CreateTextureFromSurface(rend, load_surf);
+			free(load_surf);
+			sprintf(buf, "%li", bar->time);
+			load_surf = TTF_RenderText_Shaded(bar->font, buf, bar->txt_color, bar->bg_color);
+			bar->time_counter_tex = SDL_CreateTextureFromSurface(rend, load_surf);
 		}
 		if(i == 5)
 		{
-			load_surf = TTF_RenderText_Shaded(bar->font, "LIVES", text_color, bg_color);
+			load_surf = TTF_RenderText_Shaded(bar->font, "LIVES", bar->txt_color, bar->bg_color);
 			bar->lives_tex = SDL_CreateTextureFromSurface(rend, load_surf);
+			free(load_surf);
+			sprintf(buf, "%i", bar->lives);
+			load_surf = TTF_RenderText_Shaded(bar->font, buf, bar->txt_color, bar->bg_color);
+			bar->lives_counter_tex = SDL_CreateTextureFromSurface(rend, load_surf);
 		}
 		free(load_surf);
 	}
@@ -60,6 +77,17 @@ StatusBar *initStatusBar(int world, int room, int time, SDL_Renderer *rend)
 }
 
 
+void updateBarTimeTex(StatusBar *bar, SDL_Renderer *rend)
+{
+	SDL_Surface *load_surf;
+	char buf[10];
+	sprintf(buf, "%li", bar->time);
+	load_surf = TTF_RenderText_Shaded(bar->font, buf, bar->txt_color, bar->bg_color);
+	SDL_DestroyTexture(bar->time_counter_tex);
+	free(bar->time_counter_tex);
+	bar->time_counter_tex = SDL_CreateTextureFromSurface(rend, load_surf);
+	free(load_surf);
+}
 
 
 void addSBarToRender(StatusBar *bar, SDL_Renderer *rend, int screen_w, int screen_h)
@@ -74,43 +102,67 @@ void addSBarToRender(StatusBar *bar, SDL_Renderer *rend, int screen_w, int scree
 //	bg_color.a = 1;
 
 	int dx = screen_w/6;
-	SDL_Rect *textBox = calloc(1, sizeof(SDL_Rect));
-
+	SDL_Rect *text_box = calloc(1, sizeof(SDL_Rect));
+	char buf[10];
 	for(int i = 1; i <= 5; i += 1)
 	{
 
-		textBox->y = 10;
+		text_box->y = 10;
 
 		if(i == 1)
 		{
-			TTF_SizeText(font, "SCORE", &textBox->w, &textBox->h);
-			textBox->x = dx*i - textBox->w/2;
-			SDL_RenderCopy(rend, bar->score_tex, NULL, textBox);
+			TTF_SizeText(font, "SCORE", &text_box->w, &text_box->h);
+			text_box->x = dx*i - text_box->w/2;
+			SDL_RenderCopy(rend, bar->score_tex, NULL, text_box);
+			text_box->y += text_box->h + 5;
+			sprintf(buf, "%i", bar->score);
+			TTF_SizeText(font, buf, &text_box->w, &text_box->h);
+			text_box->x = dx*i - text_box->w/2;
+			SDL_RenderCopy(rend, bar->score_counter_tex, NULL, text_box);
 		}
 		if(i == 2)
 		{
-			TTF_SizeText(font, "COINS", &textBox->w, &textBox->h);
-			textBox->x = dx*i - textBox->w/2;
-			SDL_RenderCopy(rend, bar->coins_tex, NULL, textBox);
+			TTF_SizeText(font, "COINS", &text_box->w, &text_box->h);
+			text_box->x = dx*i - text_box->w/2;
+			SDL_RenderCopy(rend, bar->coins_tex, NULL, text_box);
+			text_box->y += text_box->h + 5;
+			sprintf(buf, "%i", bar->coins);
+			TTF_SizeText(font, buf, &text_box->w, &text_box->h);
+			text_box->x = dx*i - text_box->w/2;
+			SDL_RenderCopy(rend, bar->coins_counter_tex, NULL, text_box);
 		}
 		if(i == 3)
 		{
-			TTF_SizeText(font, "WORLD", &textBox->w, &textBox->h);
-			textBox->x = dx*i - textBox->w/2;
-			SDL_RenderCopy(rend, bar->world_tex, NULL, textBox);
+			TTF_SizeText(font, "WORLD", &text_box->w, &text_box->h);
+			text_box->x = dx*i - text_box->w/2;
+			SDL_RenderCopy(rend, bar->world_tex, NULL, text_box);
+			text_box->y += text_box->h + 5;
+			TTF_SizeText(font, "0", &text_box->w, &text_box->h);
+			text_box->x = dx*i - text_box->w/2;
+			SDL_RenderCopy(rend, bar->world_counter_tex, NULL, text_box);
 		}
 		if(i == 4)
 		{
-			TTF_SizeText(font, "TIME", &textBox->w, &textBox->h);
-			textBox->x = dx*i - textBox->w/2;
-			SDL_RenderCopy(rend, bar->time_tex, NULL, textBox);
+			TTF_SizeText(font, "TIME", &text_box->w, &text_box->h);
+			text_box->x = dx*i - text_box->w/2;
+			SDL_RenderCopy(rend, bar->time_tex, NULL, text_box);
+			text_box->y += text_box->h + 5;
+			sprintf(buf, "%li", bar->time);
+			TTF_SizeText(font, buf, &text_box->w, &text_box->h);
+			text_box->x = dx*i - text_box->w/2;
+			SDL_RenderCopy(rend, bar->time_counter_tex, NULL, text_box);
 		}
 		if(i == 5)
 		{
-			TTF_SizeText(font, "LIVES", &textBox->w, &textBox->h);
-			textBox->x = dx*i - textBox->w/2;
-			SDL_RenderCopy(rend, bar->lives_tex, NULL, textBox);
+			TTF_SizeText(font, "LIVES", &text_box->w, &text_box->h);
+			text_box->x = dx*i - text_box->w/2;
+			SDL_RenderCopy(rend, bar->lives_tex, NULL, text_box);
+			text_box->y += text_box->h + 5;
+			sprintf(buf, "%i", bar->lives);
+			TTF_SizeText(font, buf, &text_box->w, &text_box->h);
+			text_box->x = dx*i - text_box->w/2;
+			SDL_RenderCopy(rend, bar->lives_counter_tex, NULL, text_box);
 		}
 	}
-	free(textBox);
+	free(text_box);
 }

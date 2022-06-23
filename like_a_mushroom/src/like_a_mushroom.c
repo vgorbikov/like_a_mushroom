@@ -86,6 +86,8 @@ int main(int argc, char *argv[]) {
 
 	addEventInList(player->events, GRAVITATION);
 //	long int last_frame = 0;
+
+	long int start_game_moment = clock();
 	while (!controlHandler(player))
 	{
 		nearbyCalculator(player);
@@ -117,6 +119,8 @@ int main(int argc, char *argv[]) {
 		 * Отправляем все объекты на карте на отрисовку
 		 */
 		mapRender(g_map, rend);
+		bar->time = MAP1_TIME - (clock() - start_game_moment)/1000;
+		updateBarTimeTex(bar, rend);
 		addSBarToRender(bar, rend, SCREEN_WIDTH, SCREEN_HEIGHT);
 		SDL_RenderPresent(rend);
 		SDL_Delay(1);
