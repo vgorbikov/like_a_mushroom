@@ -7,7 +7,7 @@ typedef struct StatusBar
 	long int time;
 	int world, room;
 	TTF_Font *font;
-	SDL_Color txt_color, bg_color;
+	SDL_Color *txt_color, *bg_color;
 	SDL_Texture *score_tex;
 	SDL_Texture *coins_tex;
 	SDL_Texture *lives_tex;
