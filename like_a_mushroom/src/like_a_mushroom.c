@@ -75,7 +75,7 @@ int main(int argc, char *argv[]) {
 	SDL_Texture *background = NULL;
 	rend = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 	background = IMG_LoadTexture(rend, "textures/background.bmp");
-	StatusBar *bar = initStatusBar(1, 1, 300);
+	StatusBar *bar = initStatusBar(1, 1, 300, rend);
 
 	/*
 	 * Загружаем карту и получаем указатель на структуру объекта-игрока
