@@ -9,6 +9,7 @@
 #define STONE_CODE 0
 #define WOOD_CODE 102
 #define PLAYER_CODE 79
+#define MARIO_CODE 213
 
 
 /*
@@ -34,7 +35,7 @@
  */
 #define TYPE_MONOLITH 0
 #define TYPE_PLAYER 10
-
+#define TYPE_MARIO 20
 
 /*
  * Типы касаний объектов

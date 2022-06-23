@@ -141,13 +141,6 @@ void updateBarWorldTex(StatusBar *bar, SDL_Renderer *rend)
 void addSBarToRender(StatusBar *bar, SDL_Renderer *rend, int screen_w, int screen_h)
 {
 	TTF_Font *font = bar->font;
-//	SDL_Color text_color;
-//	text_color.r = 0;
-//	text_color.g = 0;
-//	text_color.b = 0;
-//	text_color.a = 0;
-//	SDL_Color bg_color;
-//	bg_color.a = 1;
 
 	int dx = screen_w/6;
 	SDL_Rect *text_box = calloc(1, sizeof(SDL_Rect));

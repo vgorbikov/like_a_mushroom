@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <math.h>
 #include <SDL.h>
 #include <SDL_image.h>
 #include "objects.h"
@@ -443,6 +444,12 @@ int hasIntersectTwoSegment(SDL_Point *begin1, SDL_Point *end1, SDL_Point *begin2
 }
 
 
+float getDistance(SDL_Rect *box1, SDL_Rect *box2)
+{
+	return sqrt(pow(box1->x - box2->x, 2) + pow(box1->y - box2->y, 2));
+}
+
+
 /**
  * Возвращает тип касания двух объектов, если оно есть
  * В противном случае 0
@@ -559,7 +566,8 @@ void touchingHandler(ObjList *objlist, Obj *player)
 	while(objlist->current != NULL)
 	{
 		Obj *cur = objlist->current->object;
-		if(cur != player)
+		//не просчитываем касания для слишком отдалённых друг от друга предметов
+		if((cur != player)&(getDistance(&player->box, &cur->box) < 3*BLOCK_SIZE))
 		{
 			int *correct = playerTouchMonolith(player, cur, touchingCalculator(player, cur));
 			if(((correct[1] > dx)&(dx>0))||((correct[1] < dx)&(dx<0))||(dx == 0)) dx = correct[1];

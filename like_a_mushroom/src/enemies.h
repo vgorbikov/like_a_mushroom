@@ -3,4 +3,7 @@
 
 
 
-#endif
+Obj *initMario(SDL_Renderer *rend, int x, int y);
+
+
+#endif //enemies
