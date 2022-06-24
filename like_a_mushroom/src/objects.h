@@ -54,7 +54,9 @@
 #define JUMP 3
 #define GRAVITATION 4
 
-#define FALL_SPEED 280
+/**
+ * Некоторые псевдофизические переменные
+ */
 #define G 1800
 
 typedef struct Line
@@ -223,6 +225,12 @@ int eventHandler(ObjList *list);
 
 
 void movingClear(ObjList *list);
+
+
+void nearbyCalculator(Obj *obj);
+
+
+int gravitation(Obj *obj);
 
 
 int hasIntersectTwoSegment(SDL_Point *begin1, SDL_Point *end1, SDL_Point *begin2, SDL_Point *end2);

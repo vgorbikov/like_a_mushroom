@@ -8,32 +8,34 @@
 
 
 
-///**
-// * BULLSHIT
-// */
-//Obj *initMario(SDL_Renderer *rend, int x, int y)
-//{
-//	SDL_Rect *mTexBox = malloc(sizeof(SDL_Rect));
-//	mTexBox->x = 0;
-//	mTexBox->y = 0;
-//	mTexBox->w = 100;
-//	mTexBox->h = 100;
-//	ObjAnim *marioAnim = initObjAnim(rend, MARIO_TEXTURE, mTexBox);
-////	printf("Mario Texture OK\n");
-//	SDL_Rect marioBox;
-//	marioBox.x = x;
-//	marioBox.y = y;
-//	marioBox.h = BLOCK_SIZE;
-//	marioBox.w = BLOCK_SIZE;
-//	Obj *mario = initObject(marioBox, marioAnim, TYPE_MARIO);
-//	mario->x_speed = 0;
-//	mario->objects_below = initObjList();
-//	mario->objects_right = initObjList();
-//	mario->objects_left = initObjList();
-//	mario->objects_over = initObjList();
-////	printf("Mario OK\n");
-//	return mario;
-//}
+/**
+ * BULLSHIT
+ */
+Obj *initMario(SDL_Renderer *rend, int x, int y)
+{
+	SDL_Rect *mTexBox = malloc(sizeof(SDL_Rect));
+	mTexBox->x = 0;
+	mTexBox->y = 0;
+	mTexBox->w = 100;
+	mTexBox->h = 100;
+	ObjAnim *marioAnim = initObjAnim(rend, MARIO_TEXTURE, mTexBox);
+//	printf("Mario Texture OK\n");
+	SDL_Rect marioBox;
+	marioBox.x = x;
+	marioBox.y = y;
+	marioBox.h = BLOCK_SIZE;
+	marioBox.w = BLOCK_SIZE;
+	Obj *mario = initObject(marioBox, marioAnim, TYPE_MARIO);
+	mario->x_speed = 0;
+	mario->objects_below = initObjList();
+	mario->objects_right = initObjList();
+	mario->objects_left = initObjList();
+	mario->objects_over = initObjList();
+//	printf("Mario OK\n");
+	return mario;
+}
+
+
 
 
 

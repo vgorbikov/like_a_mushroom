@@ -5,7 +5,7 @@
 #include "objects.h"
 #include "map_funcs.h"
 #include "player.h"
-#include "enemies.c"
+#include "enemies.h"
 
 ObjList *mapLoad(SDL_Renderer *rend)
 {
@@ -42,10 +42,10 @@ ObjList *mapLoad(SDL_Renderer *rend)
 					Obj *player = initPlayer(rend, j*BLOCK_SIZE, i*BLOCK_SIZE);
 					addObjInList(new_map, player);
 					continue;
-//				case MARIO_CODE:;
-//					Obj *mario = initMario(rend, j*BLOCK_SIZE, i*BLOCK_SIZE);
-//					addObjInList(new_map, mario);
-//					continue;
+				case MARIO_CODE:;
+					Obj *mario = initMario(rend, j*BLOCK_SIZE, i*BLOCK_SIZE);
+					addObjInList(new_map, mario);
+					continue;
 				case 255:
 					continue;
 				default:

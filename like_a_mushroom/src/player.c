@@ -3,9 +3,10 @@
 #include <time.h>
 #include <SDL.h>
 #include <SDL_image.h>
+#include <SDL_ttf.h>
 #include "objects.h"
 #include "player.h"
-
+#include "status_bar.h"
 
 /**
  * Возвращает объект типа "TYPE_PLAYER"
@@ -151,73 +152,6 @@ int *playerTouchMonolith(Obj *player, Obj* monolith, int touch_code)
 	return correct;
 }
 
-
-/**
- * Перемещает объект вниз с ускорением
- */
-int gravitation(Obj *obj)
-{
-	long int time = clock();
-	if(obj->objects_below->head != NULL) obj->events->current->event->start_moment = time;
-	obj->y_speed += G*(time - obj->events->current->event->start_moment)/1000;
-	return 0;
-}
-
-
-/**
- * Проверяет, касается ли один объект другого до сих пор
- */
-void nearbyCalculator(Obj *obj)
-{
-	ObjList *below = obj->objects_below;
-	ObjList *left = obj->objects_left;
-	ObjList *right = obj->objects_right;
-	ObjList *over = obj->objects_over;
-//	int count_b;
-	headObjInList(below);
-	while(below->current != NULL)
-	{
-//		count_b += 1;
-//		printf("below x_code: %i\n", below->current->object->box.x);
-		if(!((below->current->object->box.y == obj->box.y + obj->box.h)&(below->current->object->box.x > obj->box.x - below->current->object->box.w)&
-				(below->current->object->box.x < obj->box.x + obj->box.w))) delObjFromList(below);
-		else nextObjInList(below);
-
-	}
-	headObjInList(below);
-	headObjInList(left);
-	while(left->current != NULL)
-	{
-//		printf("below x_code: %i\n", below->current->object->box.x);
-		if(!((left->current->object->box.x == obj->box.x - left->current->object->box.w)&(left->current->object->box.y + left->current->object->box.h > obj->box.y)&
-				(left->current->object->box.y < obj->box.y + obj->box.h))) delObjFromList(left);
-		else nextObjInList(left);
-
-	}
-	headObjInList(left);
-	headObjInList(right);
-	while(right->current != NULL)
-	{
-//		printf("below x_code: %i\n", below->current->object->box.x);
-		if(!((right->current->object->box.x == obj->box.x + obj->box.w)&(right->current->object->box.y + right->current->object->box.h > obj->box.y)&
-				(right->current->object->box.y < obj->box.y + obj->box.h))) delObjFromList(right);
-		else nextObjInList(right);
-
-	}
-	headObjInList(right);
-	headObjInList(over);
-	while(over->current != NULL)
-	{
-//		count_b += 1;
-//		printf("below x_code: %i\n", below->current->object->box.x);
-		if(!((over->current->object->box.y + over->current->object->box.h == obj->box.y)&(over->current->object->box.x > obj->box.x - over->current->object->box.w)&
-				(over->current->object->box.x < obj->box.x + obj->box.w))) delObjFromList(over);
-		else nextObjInList(over);
-
-	}
-	headObjInList(over);
-//	printf("Over count: %i\n", count_b);
-}
 
 
 /**

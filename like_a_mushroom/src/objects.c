@@ -7,6 +7,7 @@
 #include "objects.h"
 #include "map_funcs.h"
 #include "player.h"
+#include "enemies.h"
 
 
 ObjAnim *initObjAnim(SDL_Renderer *rend, char *path, SDL_Rect *rect)
@@ -344,6 +345,81 @@ int eventHandler(ObjList *list)
 }
 
 
+
+/**
+ * Перемещает объект вниз с ускорением
+ */
+int gravitation(Obj *obj)
+{
+	long int time = clock();
+	if(obj->objects_below->head != NULL) obj->events->current->event->start_moment = time;
+	obj->y_speed += G*(time - obj->events->current->event->start_moment)/1000;
+	return 0;
+}
+
+
+
+/**
+ * Проверяет, касается ли один объект другого до сих пор
+ */
+void nearbyCalculator(Obj *obj)
+{
+	ObjList *below = obj->objects_below;
+	ObjList *left = obj->objects_left;
+	ObjList *right = obj->objects_right;
+	ObjList *over = obj->objects_over;
+//	int count_b;
+	headObjInList(below);
+	while(below->current != NULL)
+	{
+//		count_b += 1;
+//		printf("below x_code: %i\n", below->current->object->box.x);
+		if(!((below->current->object->box.y == obj->box.y + obj->box.h)&(below->current->object->box.x > obj->box.x - below->current->object->box.w)&
+				(below->current->object->box.x < obj->box.x + obj->box.w))) delObjFromList(below);
+		else nextObjInList(below);
+
+	}
+	headObjInList(below);
+	headObjInList(left);
+	while(left->current != NULL)
+	{
+//		printf("below x_code: %i\n", below->current->object->box.x);
+		if(!((left->current->object->box.x == obj->box.x - left->current->object->box.w)&(left->current->object->box.y + left->current->object->box.h > obj->box.y)&
+				(left->current->object->box.y < obj->box.y + obj->box.h))) delObjFromList(left);
+		else nextObjInList(left);
+
+	}
+	headObjInList(left);
+	headObjInList(right);
+	while(right->current != NULL)
+	{
+//		printf("below x_code: %i\n", below->current->object->box.x);
+		if(!((right->current->object->box.x == obj->box.x + obj->box.w)&(right->current->object->box.y + right->current->object->box.h > obj->box.y)&
+				(right->current->object->box.y < obj->box.y + obj->box.h))) delObjFromList(right);
+		else nextObjInList(right);
+
+	}
+	headObjInList(right);
+	headObjInList(over);
+	while(over->current != NULL)
+	{
+//		count_b += 1;
+//		printf("below x_code: %i\n", below->current->object->box.x);
+		if(!((over->current->object->box.y + over->current->object->box.h == obj->box.y)&(over->current->object->box.x > obj->box.x - over->current->object->box.w)&
+				(over->current->object->box.x < obj->box.x + obj->box.w))) delObjFromList(over);
+		else nextObjInList(over);
+
+	}
+	headObjInList(over);
+//	printf("Over count: %i\n", count_b);
+}
+
+
+
+/**
+ * Обнуляет перемещение всех объектов из списка
+ * Следует применять в конце каждого цикла отрисовки
+ */
 void movingClear(ObjList *list)
 {
 	headObjInList(list);
@@ -357,6 +433,40 @@ void movingClear(ObjList *list)
 	}
 	headObjInList(list);
 }
+
+
+/**
+ * Придаёт объекту перемещение исходя из его скорости в данный момент времени
+ */
+int movingCalculator(Obj *obj)
+{
+	long int time = clock();
+
+	float tempydt = (time - obj->last_ymove);
+	float ydt = tempydt/1000;
+	if(!(((obj->y_speed*ydt) < 1) & (obj->y_speed*ydt > -1) & (obj->y_speed != 0)))
+	{
+		obj->moving.y += obj->y_speed*ydt;
+		obj->last_ymove = clock();
+	}
+	else obj->moving.y += 0;
+
+	float tempxdt = (time - obj->last_xmove);
+	float xdt = tempxdt/1000;
+	if(!(((obj->x_speed*xdt) < 1) & (obj->x_speed*xdt > -1) & (obj->x_speed != 0)))
+	{
+		obj->moving.x += obj->x_speed*xdt;
+		obj->last_xmove = clock();
+	}
+	else obj->moving.x += 0;
+
+	if((obj->objects_below->head == NULL)&(obj->moving.y > 0)) obj->box.y += obj->moving.y;
+	if((obj->objects_over->head == NULL)&(obj->moving.y < 0)) obj->box.y += obj->moving.y;
+	if((obj->objects_left->head == NULL)&(obj->moving.x < 0)) obj->box.x += obj->moving.x;
+	if((obj->objects_right->head == NULL)&(obj->moving.x > 0)) obj->box.x += obj->moving.x;
+	return 0;
+}
+
 
 
 /**
@@ -580,31 +690,4 @@ void touchingHandler(ObjList *objlist, Obj *player)
 	player->box.y += dy;
 }
 
-int movingCalculator(Obj *obj)
-{
-	long int time = clock();
 
-	float tempydt = (time - obj->last_ymove);
-	float ydt = tempydt/1000;
-	if(!(((obj->y_speed*ydt) < 1) & (obj->y_speed*ydt > -1) & (obj->y_speed != 0)))
-	{
-		obj->moving.y += obj->y_speed*ydt;
-		obj->last_ymove = clock();
-	}
-	else obj->moving.y += 0;
-
-	float tempxdt = (time - obj->last_xmove);
-	float xdt = tempxdt/1000;
-	if(!(((obj->x_speed*xdt) < 1) & (obj->x_speed*xdt > -1) & (obj->x_speed != 0)))
-	{
-		obj->moving.x += obj->x_speed*xdt;
-		obj->last_xmove = clock();
-	}
-	else obj->moving.x += 0;
-
-	if((obj->objects_below->head == NULL)&(obj->moving.y > 0)) obj->box.y += obj->moving.y;
-	if((obj->objects_over->head == NULL)&(obj->moving.y < 0)) obj->box.y += obj->moving.y;
-	if((obj->objects_left->head == NULL)&(obj->moving.x < 0)) obj->box.x += obj->moving.x;
-	if((obj->objects_right->head == NULL)&(obj->moving.x > 0)) obj->box.x += obj->moving.x;
-	return 0;
-}

@@ -11,8 +11,6 @@ int playerRun(Obj *player, int direction);
 
 int playerJump(Obj *player);
 
-int gravitation(Obj *obj);
-
 int *playerTouchMonolith(Obj *player, Obj* monolith, int touch_code);
 
 int playerStop(Obj *player, int direction, long int stime);
@@ -22,8 +20,6 @@ void updatePlayerRunAnim(Obj *obj, int direction);
 void updatePlayerStaticAnim(Obj *obj);
 
 void updatePlayerJumpAnim(Obj *obj);
-
-void nearbyCalculator(Obj *obj);
 
 int playerEventHandler(Obj *player);
 
