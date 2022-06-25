@@ -770,7 +770,7 @@ void touchingHandler(ObjList *objlist, ObjList *movable)
 			if((cur != someone)&(getDistance(&someone->box, &cur->box) < 3*BLOCK_SIZE))
 			{
 				int *correct = Touch(someone, cur, touchingCalculator(someone, cur));
-				if((correct[1]!=0)||(correct[0]!=0)) printf("correct: %i, %i\n", correct[0], correct[1]);
+//				if((correct[1]!=0)||(correct[0]!=0)) printf("correct: %i, %i\n", correct[0], correct[1]);
 
 				if(((correct[0] > dx)&(dx>0))||((correct[0] < dx)&(dx<0))||(dx == 0)) dx = correct[0];
 				if(((correct[1] > dy)&(dy>0))||((correct[1] < dy)&(dy<0))||(dy == 0)) dy = correct[1];
@@ -781,7 +781,7 @@ void touchingHandler(ObjList *objlist, ObjList *movable)
 			}
 			nextObjInList(objlist);
 		}
-		if((dx!=0)||(dy!=0)) printf("totally correct: %i, %i\n", dx, dy);
+//		if((dx!=0)||(dy!=0)) printf("totally correct: %i, %i\n", dx, dy);
 		someone->box.x += dx;
 		someone->box.y += dy;
 		nextObjInList(movable);
