@@ -16,10 +16,14 @@ ObjList *mapLoad(SDL_Renderer *rend);
 Obj *getPlayer(ObjList *map);
 
 
+ObjList *getMovable(ObjList *map);
+
+
 int mapRender(ObjList *map, SDL_Renderer *rend);
 
 
 void moveMap(ObjList *map, int dx);
+
 
 void trackThePlayer(ObjList *map, Obj *player);
 

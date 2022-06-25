@@ -233,13 +233,22 @@ void nearbyCalculator(Obj *obj);
 int gravitation(Obj *obj);
 
 
+int Run(Obj *somebody, int direction);
+
+
+int Jump(Obj *somebody);
+
+
+int *Touch(Obj *somebody, Obj* monolith, int touch_code);
+
+
 int hasIntersectTwoSegment(SDL_Point *begin1, SDL_Point *end1, SDL_Point *begin2, SDL_Point *end2);
 
 
 int touchingCalculator(Obj *obj1, Obj *obj2);
 
 
-void touchingHandler(ObjList *objlist, Obj *player);
+void touchingHandler(ObjList *objlist, ObjList *movable);
 
 int movingCalculator(Obj *obj);
 

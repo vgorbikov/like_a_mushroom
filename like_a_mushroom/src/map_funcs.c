@@ -69,6 +69,9 @@ ObjList *mapLoad(SDL_Renderer *rend)
 }
 
 
+/**
+ * Возвращает объект игрока, инициализированный на карте
+ */
 Obj *getPlayer(ObjList *map)
 {
 	headObjInList(map);
@@ -76,9 +79,32 @@ Obj *getPlayer(ObjList *map)
 	{
 		nextObjInList(map);
 	}
-	printf("Get OK\n");
+	printf("Get player OK\n");
 	return map->current->object;
 }
+
+/**
+ * Возвращает список всех объектов, которые могут предвигаться
+ */
+ObjList *getMovable(ObjList *map)
+{
+	ObjList *movable = initObjList();
+	int count = 0;
+	headObjInList(map);
+	while(map->current != NULL)
+	{
+		if(map->current->object->type != TYPE_MONOLITH)
+		{
+			addObjInList(movable, map->current->object);
+			count += 1;
+		}
+		nextObjInList(map);
+	}
+	headObjInList(map);
+	printf("GET MOVABLE OK, count: %i\n", count);
+	return movable;
+}
+
 
 
 int mapRender(ObjList *map, SDL_Renderer *rend)

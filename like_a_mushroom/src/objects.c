@@ -80,6 +80,7 @@ ObjList *initObjList()
  */
 int addObjInList(ObjList *list, Obj *obj)
 {
+	if(obj == NULL) return 1;
 	OLE *elem = initOLE(obj);
 	if(list->head == NULL)
 	{
@@ -129,7 +130,7 @@ int delObjFromList(ObjList *list)
 		if(list->current->next != NULL) list->current->next->prev = list->current->prev;
 		if(list->current == list->head) list->head = list->current->next;
 		OLE *new_cur = list->current->next;
-		free(list->current);
+		if(list->current != NULL) free(list->current);
 		list->current = new_cur;
 	//printf("Deep deleting Done\n");
 	}
@@ -243,7 +244,7 @@ int eventInList(EventList *list, int event_code)
  */
 int addEventInList(EventList *list, int event_code)
 {
-	if(eventInList(list, event_code)) return 0;
+	if(eventInList(list, event_code)) return 1;
 	ELE *elem = initELE(initEvent(event_code));
 	if(list->head == NULL)
 	{
@@ -278,7 +279,7 @@ int delEventFromList(EventList *list, int event_code)
 			if(list->current->next != NULL) list->current->next->prev = list->current->prev;
 			if(list->current == list->head) list->head = list->current->next;
 			ELE *new_cur = list->current->next;
-			free(list->current);
+			if(list->current != NULL) free(list->current);
 			list->current = new_cur;
 		//printf("Deep deleting Done\n");
 		}
@@ -345,7 +346,6 @@ int eventHandler(ObjList *list)
 }
 
 
-
 /**
  * Перемещает объект вниз с ускорением
  */
@@ -355,6 +355,85 @@ int gravitation(Obj *obj)
 	if(obj->objects_below->head != NULL) obj->events->current->event->start_moment = time;
 	obj->y_speed += G*(time - obj->events->current->event->start_moment)/1000;
 	return 0;
+}
+
+
+
+/**
+ * Пока действует, перемещает объект с присущей ему скоростью
+ * Для "живых" объектов
+ */
+int Run(Obj *somebody, int direction)
+{
+	ObjList *left = somebody->objects_left;
+	ObjList *right = somebody->objects_right;
+	if((left->head != NULL)&(direction < 0)) return 0;
+	if((right->head != NULL)&(direction > 0)) return 0;
+	somebody->x_speed += direction;
+	return 0;
+}
+
+
+/**
+ * Придаёт скорость по оси y в отрицательном направлении
+ */
+int Jump(Obj *somebody)
+{
+//	printf("JUMP!!!\n");
+	somebody->y_speed -= 800;
+	return 0;
+}
+
+
+int *Touch(Obj *somebody, Obj* monolith, int touch_code)
+{
+//	printf("strt tch\n");
+	int *correct = calloc(2, sizeof(int));
+	int dx = 0;
+	int dy = 0;
+	switch(touch_code)
+	{
+		case TOP_TOUCH:
+			dy = monolith->box.y - somebody->box.y - somebody->box.h;
+			if(!objInList(somebody->objects_below, monolith))
+			{
+				addObjInList(somebody->objects_below, monolith);
+//				printf("top touch obj: %i\n", monolith);
+			}
+			delEventFromList(somebody->events, JUMP);
+			break;
+		case LEFT_TOUCH:
+			dx = monolith->box.x - somebody->box.x - somebody->box.w;
+			if(!objInList(somebody->objects_right, monolith))
+			{
+				addObjInList(somebody->objects_right, monolith);
+//				printf("left touch obj: %i\n", monolith);
+			}
+			break;
+		case RIGHT_TOUCH:
+			dx = monolith->box.w - somebody->box.x + monolith->box.x;
+			if(!objInList(somebody->objects_left, monolith))
+			{
+				addObjInList(somebody->objects_left, monolith);
+//				printf("right touch obj: %i\n", monolith);
+			}
+			break;
+		case BOTTOM_TOUCH:
+			dy = monolith->box.h - somebody->box.y + monolith->box.y;
+			if(!objInList(somebody->objects_over, monolith))
+			{
+				addObjInList(somebody->objects_over, monolith);
+//				printf("bottom touch obj: %i\n", monolith);
+			}
+			delEventFromList(somebody->events, JUMP);
+			break;
+	}
+//	if((dx != 0)||(dy != 0)) printf("%i, %i\n", dx, dy);
+	correct[0] = dx;
+	correct[1] = dy;
+//	if((correct[1]!=0)||(correct[0]!=0)) printf("correct: %i, %i\n", correct[0], correct[1]);
+//	printf("end tch\n");
+	return correct;
 }
 
 
@@ -568,6 +647,8 @@ float getDistance(SDL_Rect *box1, SDL_Rect *box2)
  */
 int touchingCalculator(Obj *donor, Obj *acceptor)
 {
+//	printf("start calcul\n");
+	int code = 0;
 	if(SDL_HasIntersection(&donor->box, &acceptor->box) == SDL_TRUE) //если есть пересечение, нужно понять с какой стороны оно пришло
 	{
 		SDL_Rect *intersect = calloc(1, sizeof(SDL_Rect)); //наче получаем пересечение
@@ -643,51 +724,68 @@ int touchingCalculator(Obj *donor, Obj *acceptor)
 		bl->y = acceptor->box.y + acceptor->box.h;
 		br->x = acceptor->box.x + acceptor->box.w;
 		br->y = acceptor->box.y + acceptor->box.h;
-		if(hasIntersectTwoSegment(tracking_point_before, tracking_point, tl, bl)) return LEFT_TOUCH;
-		if(hasIntersectTwoSegment(tracking_point_before, tracking_point, tl, tr)) return TOP_TOUCH;
-		if(hasIntersectTwoSegment(tracking_point_before, tracking_point, tr, br)) return RIGHT_TOUCH;
-		if(hasIntersectTwoSegment(tracking_point_before, tracking_point, bl, br)) return BOTTOM_TOUCH;
+		if(hasIntersectTwoSegment(tracking_point_before, tracking_point, tl, bl)) code = LEFT_TOUCH;
+		if(hasIntersectTwoSegment(tracking_point_before, tracking_point, tl, tr)) code = TOP_TOUCH;
+		if(hasIntersectTwoSegment(tracking_point_before, tracking_point, tr, br)) code = RIGHT_TOUCH;
+		if(hasIntersectTwoSegment(tracking_point_before, tracking_point, bl, br)) code = BOTTOM_TOUCH;
+		free(tl);
+		free(tr);
+		free(bl);
+		free(br);
 	}
 
 	if(((acceptor->box.y == donor->box.y + donor->box.h)&(acceptor->box.x > donor->box.x - acceptor->box.w)&
-			(acceptor->box.x < donor->box.x + donor->box.w))) return TOP_TOUCH;
+			(acceptor->box.x < donor->box.x + donor->box.w))) code = TOP_TOUCH;
 
-	if(((acceptor->box.x == donor->box.x - acceptor->box.w)&(acceptor->box.y + acceptor->box.h > donor->box.y)&
-			(acceptor->box.y < donor->box.y + donor->box.h))) return RIGHT_TOUCH;
+	else if(((acceptor->box.x == donor->box.x - acceptor->box.w)&(acceptor->box.y + acceptor->box.h > donor->box.y)&
+			(acceptor->box.y < donor->box.y + donor->box.h))) code = RIGHT_TOUCH;
 
-	if(((acceptor->box.x == donor->box.x + donor->box.w)&(acceptor->box.y + acceptor->box.h > donor->box.y)&
-			(acceptor->box.y < donor->box.y + donor->box.h))) return LEFT_TOUCH;
+	else if(((acceptor->box.x == donor->box.x + donor->box.w)&(acceptor->box.y + acceptor->box.h > donor->box.y)&
+			(acceptor->box.y < donor->box.y + donor->box.h))) code = LEFT_TOUCH;
 
-	if(((acceptor->box.y + acceptor->box.h == donor->box.y)&(acceptor->box.x > donor->box.x - acceptor->box.w)&
-					(acceptor->box.x < donor->box.x + donor->box.w))) return BOTTOM_TOUCH;
-
-	return 0;
+	else if(((acceptor->box.y + acceptor->box.h == donor->box.y)&(acceptor->box.x > donor->box.x - acceptor->box.w)&
+					(acceptor->box.x < donor->box.x + donor->box.w))) code = BOTTOM_TOUCH;
+//	printf("done calcul\n");
+	return code;
 }
 
 
 /**
  * Принимает список объектов на карте и просчитывает их касания с игроком
  */
-void touchingHandler(ObjList *objlist, Obj *player)
+void touchingHandler(ObjList *objlist, ObjList *movable)
 {
-	headObjInList(objlist);
-	int dx = 0;
-	int dy = 0;
-	while(objlist->current != NULL)
+	headObjInList(movable);
+	while(movable->current != NULL)
 	{
-		Obj *cur = objlist->current->object;
-		//не просчитываем касания для слишком отдалённых друг от друга предметов
-		if((cur != player)&(getDistance(&player->box, &cur->box) < 3*BLOCK_SIZE))
+		Obj *someone = movable->current->object;
+		int dx = 0;
+		int dy = 0;
+		headObjInList(objlist);
+		while(objlist->current != NULL)
 		{
-			int *correct = playerTouchMonolith(player, cur, touchingCalculator(player, cur));
-			if(((correct[1] > dx)&(dx>0))||((correct[1] < dx)&(dx<0))||(dx == 0)) dx = correct[1];
-			if(((correct[2] > dy)&(dy>0))||((correct[2] < dy)&(dy<0))||(dy == 0)) dy = correct[2];
-			free(correct);
+			Obj *cur = objlist->current->object;
+
+			//не просчитываем касания для слишком отдалённых друг от друга предметов
+			if((cur != someone)&(getDistance(&someone->box, &cur->box) < 3*BLOCK_SIZE))
+			{
+				int *correct = Touch(someone, cur, touchingCalculator(someone, cur));
+				if((correct[1]!=0)||(correct[0]!=0)) printf("correct: %i, %i\n", correct[0], correct[1]);
+
+				if(((correct[0] > dx)&(dx>0))||((correct[0] < dx)&(dx<0))||(dx == 0)) dx = correct[0];
+				if(((correct[1] > dy)&(dy>0))||((correct[1] < dy)&(dy<0))||(dy == 0)) dy = correct[1];
+
+				if(correct != NULL) free(correct);
+
+
+			}
+			nextObjInList(objlist);
 		}
-		nextObjInList(objlist);
+		if((dx!=0)||(dy!=0)) printf("totally correct: %i, %i\n", dx, dy);
+		someone->box.x += dx;
+		someone->box.y += dy;
+		nextObjInList(movable);
 	}
-	player->box.x += dx;
-	player->box.y += dy;
 }
 
 

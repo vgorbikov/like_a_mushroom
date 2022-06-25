@@ -82,6 +82,7 @@ int main(int argc, char *argv[]) {
 	 */
 	ObjList *g_map = mapLoad(rend);
 	Obj *player = getPlayer(g_map); //Получение объекта игрока на карте
+	ObjList *movable = getMovable(g_map);
 
 
 	addEventInList(player->events, GRAVITATION);
@@ -96,7 +97,9 @@ int main(int argc, char *argv[]) {
 
 		movingCalculator(player);
 
-		touchingHandler(g_map, player);
+//		printf("start handle touches\n");
+		touchingHandler(g_map, movable);
+//		printf("complete handle touches\n");
 
 		SDL_RenderClear(rend);
 		SDL_RenderCopy(rend, background, NULL, NULL);

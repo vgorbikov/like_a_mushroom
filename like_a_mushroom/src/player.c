@@ -83,75 +83,17 @@ void updatePlayerJumpAnim(Obj *obj)
 }
 
 
-/**
- * Пока действует, перемещает объект с присущей ему скоростью
- */
-int playerRun(Obj *player, int direction)
+void playerDeath(Obj *player)
 {
-	ObjList *left = player->objects_left;
-	ObjList *right = player->objects_right;
-	if((left->head != NULL)&(direction < 0)) return 0;
-	if((right->head != NULL)&(direction > 0)) return 0;
-	player->x_speed += direction;
+
+}
+
+
+int playerTouch(Obj *player, Obj* obj)
+{
+
 	return 0;
 }
-
-
-int playerJump(Obj *player)
-{
-//	printf("JUMP!!!\n");
-	player->y_speed -= 800;
-	return 0;
-}
-
-
-int *playerTouchMonolith(Obj *player, Obj* monolith, int touch_code)
-{
-	int *correct = calloc(2, sizeof(int));
-	int dx = 0;
-	int dy = 0;
-	switch(touch_code)
-	{
-		case TOP_TOUCH:
-			dy = monolith->box.y - player->box.y - player->box.h;
-			if(!objInList(player->objects_below, monolith))
-			{
-				addObjInList(player->objects_below, monolith);
-//				printf("top touch obj: %i\n", monolith);
-			}
-			delEventFromList(player->events, JUMP);
-			break;
-		case LEFT_TOUCH:
-			dx = monolith->box.x - player->box.x - player->box.w;
-			if(!objInList(player->objects_right, monolith))
-			{
-				addObjInList(player->objects_right, monolith);
-//				printf("left touch obj: %i\n", monolith);
-			}
-			break;
-		case RIGHT_TOUCH:
-			dx = monolith->box.w - player->box.x + monolith->box.x;
-			if(!objInList(player->objects_left, monolith))
-			{
-				addObjInList(player->objects_left, monolith);
-//				printf("right touch obj: %i\n", monolith);
-			}
-			break;
-		case BOTTOM_TOUCH:
-			dy = monolith->box.h - player->box.y + monolith->box.y;
-			if(!objInList(player->objects_over, monolith))
-			{
-				addObjInList(player->objects_over, monolith);
-//				printf("bottom touch obj: %i\n", monolith);
-			}
-			delEventFromList(player->events, JUMP);
-			break;
-	}
-	correct[1] = dx;
-	correct[2] = dy;
-	return correct;
-}
-
 
 
 /**
@@ -163,9 +105,9 @@ int playerEventHandler(Obj *player)
 	while(player->events->current != NULL)
 	{
 		ObjEvent *event = player->events->current->event;
-		if(event->event_code == RUN_RIGHT)  playerRun(player, PLAYER_RUN_SPEED);
-		if(event->event_code == RUN_LEFT)  playerRun(player, -PLAYER_RUN_SPEED);
-		if(event->event_code == JUMP)  playerJump(player);
+		if(event->event_code == RUN_RIGHT)  Run(player, PLAYER_RUN_SPEED);
+		if(event->event_code == RUN_LEFT)  Run(player, -PLAYER_RUN_SPEED);
+		if(event->event_code == JUMP)  Jump(player);
 		if(event->event_code == GRAVITATION)  gravitation(player);
 		nextEventInList(player->events);
 	}
