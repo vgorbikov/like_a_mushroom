@@ -40,8 +40,8 @@ Obj *initObject(SDL_Rect obj_box, ObjAnim *tex, int type)
 	new_object->y_speed = 0;
 	new_object->last_yspeed_upd = 0;
 	new_object->animation = tex;
-	new_object->last_xmove = clock() + 1000;
-	new_object->last_ymove = clock() + 1000;
+	new_object->last_xmove = clock() + 1500;
+	new_object->last_ymove = clock() + 1500;
 	new_object->events = initEventList();
 	new_object->type = type;
 	return new_object;
@@ -401,14 +401,17 @@ int Run(Obj *somebody, int direction)
 /**
  * Придаёт скорость по оси y в отрицательном направлении
  */
-int Jump(Obj *somebody)
+int Jump(Obj *somebody, int speed)
 {
 //	printf("JUMP!!!\n");
-	somebody->y_speed -= 800;
+	somebody->y_speed -= speed;
 	return 0;
 }
 
-
+/**
+ * Вычисляет кооректировку положения объекта после касания
+ * Передаёт касание на обработку инициатору событий-касаний
+ */
 int *Touch(Obj *somebody, Obj* monolith, int touch_code)
 {
 //	printf("strt tch\n");
@@ -457,6 +460,7 @@ int *Touch(Obj *somebody, Obj* monolith, int touch_code)
 	correct[1] = dy;
 //	if((correct[1]!=0)||(correct[0]!=0)) printf("correct: %i, %i\n", correct[0], correct[1]);
 //	printf("end tch\n");
+	if(somebody->type == TYPE_PLAYER) playerTouch(somebody, monolith, touch_code);
 	return correct;
 }
 
@@ -471,6 +475,11 @@ void nearbyCalculator(ObjList *objs)
 	while(objs->current != NULL)
 	{
 		Obj *obj = objs->current->object;
+		if(eventInList(obj->events, DEATH))
+		{
+			nextObjInList(objs);
+			continue;
+		}
 		ObjList *below = obj->objects_below;
 		ObjList *left = obj->objects_left;
 		ObjList *right = obj->objects_right;
@@ -787,7 +796,7 @@ int touchingCalculator(Obj *donor, Obj *acceptor)
 
 
 /**
- * Принимает список объектов на карте и просчитывает их касания с игроком
+ * Принимает объект карты и просчитывает касания движущихся объектов
  */
 void touchingHandler(Map *map)
 {
@@ -795,6 +804,11 @@ void touchingHandler(Map *map)
 	while(map->movable_obj->current != NULL)
 	{
 		Obj *someone = map->movable_obj->current->object;
+		if(eventInList(someone->events, DEATH))
+		{
+			nextObjInList(map->movable_obj);
+			continue;
+		}
 		int dx = 0;
 		int dy = 0;
 		headObjInList(map->all_obj);
@@ -803,7 +817,7 @@ void touchingHandler(Map *map)
 			Obj *cur = map->all_obj->current->object;
 
 			//не просчитываем касания для слишком отдалённых друг от друга предметов
-			if((cur != someone)&(getDistance(&someone->box, &cur->box) < 3*BLOCK_SIZE))
+			if((cur != someone)&(getDistance(&someone->box, &cur->box) < 3*BLOCK_SIZE)&(!eventInList(cur->events, DEATH)))
 			{
 				int *correct = Touch(someone, cur, touchingCalculator(someone, cur));
 				if((correct[1]!=0)||(correct[0]!=0)) printf("correct: (%i, %i)\n", correct[0], correct[1]);

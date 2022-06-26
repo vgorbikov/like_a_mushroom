@@ -85,13 +85,25 @@ void updatePlayerJumpAnim(Obj *obj)
 
 void playerDeath(Obj *player)
 {
-
+	if(player->objects_below != NULL)
+	{
+		Jump(player, 300);
+//		if(eventInList(player->events, RUN_RIGHT)) delEventFromList(player->events, RUN_RIGHT);
+		delObjList(player->objects_below);
+		player->objects_below = initObjList();
+	}
 }
 
 
-int playerTouch(Obj *player, Obj* obj)
+/**
+ * Инициирует события касаний
+ */
+int playerTouch(Obj *player, Obj* obj, int touch_code)
 {
-
+	if(obj->type == TYPE_MARIO)
+	{
+		if((touch_code == LEFT_TOUCH)||(touch_code == RIGHT_TOUCH)) addEventInList(player->events, DEATH);
+	}
 	return 0;
 }
 
@@ -107,8 +119,9 @@ int playerEventHandler(Obj *player)
 		ObjEvent *event = player->events->current->event;
 		if(event->event_code == RUN_RIGHT)  Run(player, PLAYER_RUN_SPEED);
 		if(event->event_code == RUN_LEFT)  Run(player, -PLAYER_RUN_SPEED);
-		if(event->event_code == JUMP)  Jump(player);
+		if(event->event_code == JUMP)  Jump(player, PLAYER_JUMP_SPEED);
 		if(event->event_code == GRAVITATION)  gravitation(player);
+		if(event->event_code == DEATH)  playerDeath(player);
 		nextEventInList(player->events);
 	}
 	headEventInList(player->events);

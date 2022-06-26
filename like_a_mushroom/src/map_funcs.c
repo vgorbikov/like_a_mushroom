@@ -52,13 +52,13 @@ Map *mapLoad(SDL_Renderer *rend)
 					break;
 				case PLAYER_CODE:;
 					Obj *player = initPlayer(rend, j*BLOCK_SIZE, i*BLOCK_SIZE);
-					addObjInList(new_map->all_obj, player);
+//					addObjInList(new_map->all_obj, player);
 					addObjInList(new_map->movable_obj, player);
 					new_map->player = player;
 					continue;
 				case MARIO_CODE:;
 					Obj *mario = initMario(rend, j*BLOCK_SIZE, i*BLOCK_SIZE);
-					addObjInList(new_map->all_obj, mario);
+//					addObjInList(new_map->all_obj, mario);
 					addObjInList(new_map->movable_obj, mario);
 					addObjInList(new_map->controlled_obj, mario);
 					continue;
@@ -81,6 +81,14 @@ Map *mapLoad(SDL_Renderer *rend)
 		fclose(map_file);
 		printf("Load map %dx%d\n", width[0], height[0]);
 	}
+	headObjInList(new_map->movable_obj);
+	while(new_map->movable_obj->current != NULL)
+	{
+		addObjInList(new_map->all_obj, new_map->movable_obj->current->object);
+		nextObjInList(new_map->movable_obj);
+	}
+	headObjInList(new_map->all_obj);
+	headObjInList(new_map->movable_obj);
 	return new_map;
 }
 

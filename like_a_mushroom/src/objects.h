@@ -18,7 +18,7 @@
 #define STONE_TEXTURE "textures/stone.png"
 #define WOOD_TEXTURE "textures/wood.png"
 #define PLAYER_TEXTURE "textures/player_anim.png"
-#define MARIO_TEXTURE "textures/mario_anim.png"
+#define MARIO_TEXTURE "textures/mario4.png"
 
 
 /*
@@ -33,9 +33,11 @@
 /*
  * Типы объектов
  */
-#define TYPE_MONOLITH 0
-#define TYPE_PLAYER 10
-#define TYPE_MARIO 20
+#define TYPE_INTANGRIBLE 0
+#define TYPE_MONOLITH 10
+#define TYPE_PLAYER 20
+#define TYPE_MARIO 30
+
 
 /*
  * Типы касаний объектов
@@ -53,6 +55,7 @@
 #define RUN_LEFT 2
 #define JUMP 3
 #define GRAVITATION 4
+#define DEATH 5
 
 /**
  * Некоторые псевдофизические переменные
@@ -249,7 +252,7 @@ int gravitation(Obj *obj);
 int Run(Obj *somebody, int direction);
 
 
-int Jump(Obj *somebody);
+int Jump(Obj *somebody, int speed);
 
 
 int *Touch(Obj *somebody, Obj* monolith, int touch_code);

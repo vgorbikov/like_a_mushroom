@@ -51,8 +51,8 @@ SDL_bool controlHandler(Obj *player)
 				if(event.key.keysym.sym == SDLK_UP)
 				{
 					if(player->objects_below->head != NULL) addEventInList(player->events, JUMP);
-//					player->box.y -= 50;
 				}
+				if(event.key.keysym.sym == SDLK_1) addEventInList(player->events, DEATH);
 				break;
 			case SDL_KEYUP:
 				if(event.key.keysym.sym == SDLK_RIGHT) delEventFromList(player->events, RUN_RIGHT);
