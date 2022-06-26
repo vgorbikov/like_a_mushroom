@@ -151,6 +151,16 @@ typedef struct ObjList
 }ObjList;
 
 
+
+typedef struct Map
+{
+	ObjList *all_obj;
+	ObjList *movable_obj;
+	ObjList *controlled_obj;
+	Obj *player;
+} Map;
+
+
 ObjEvent *initEvent(int event_code);
 
 
@@ -218,13 +228,13 @@ int eventInList(EventList *list, int event_code);
  * Функции - обработчики
  */
 
-int animationHandler(ObjList *list);
+int animationHandler(Map *map);
 
 
-int eventHandler(ObjList *list);
+int eventHandler(Map *map);
 
 
-void movingClear(ObjList *list);
+void movingClear(Map *map);
 
 
 void nearbyCalculator(Obj *obj);
@@ -248,7 +258,7 @@ int hasIntersectTwoSegment(SDL_Point *begin1, SDL_Point *end1, SDL_Point *begin2
 int touchingCalculator(Obj *obj1, Obj *obj2);
 
 
-void touchingHandler(ObjList *objlist, ObjList *movable);
+void touchingHandler(Map *map);
 
 int movingCalculator(Obj *obj);
 

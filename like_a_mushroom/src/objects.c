@@ -307,21 +307,21 @@ int delEventList(EventList *list)
  * Функция для обработки текущих анимаций объектов.
  * Выставляет и пересчитывает анимации объектов в зависимости от контекста
  */
-int animationHandler(ObjList *list)
+int animationHandler(Map *map)
 {
-	headObjInList(list);
-	while(list->current != NULL)
+	headObjInList(map->all_obj);
+	while(map->all_obj->current != NULL)
 	{
-		if(list->current->object->type == TYPE_PLAYER)
+		if(map->all_obj->current->object->type == TYPE_PLAYER)
 		{
-			if(eventInList(list->current->object->events, RUN_RIGHT)) updatePlayerRunAnim(list->current->object, 1);
-			else if(eventInList(list->current->object->events, RUN_LEFT)) updatePlayerRunAnim(list->current->object, -1);
-			else updatePlayerStaticAnim(list->current->object);
-			if(list->current->object->objects_below->head == NULL) updatePlayerJumpAnim(list->current->object);
+			if(eventInList(map->all_obj->current->object->events, RUN_RIGHT)) updatePlayerRunAnim(map->all_obj->current->object, 1);
+			else if(eventInList(map->all_obj->current->object->events, RUN_LEFT)) updatePlayerRunAnim(map->all_obj->current->object, -1);
+			else updatePlayerStaticAnim(map->all_obj->current->object);
+			if(map->all_obj->current->object->objects_below->head == NULL) updatePlayerJumpAnim(map->all_obj->current->object);
 		}
-		nextObjInList(list);
+		nextObjInList(map->all_obj);
 	}
-	headObjInList(list);
+	headObjInList(map->all_obj);
 	return 0;
 }
 
@@ -330,18 +330,18 @@ int animationHandler(ObjList *list)
  * Обрабатывает события, происходящие с объектами
  * Использует для каждого типа объектов соответствующие функции
  */
-int eventHandler(ObjList *list)
+int eventHandler(Map *map)
 {
-	headObjInList(list);
-	while(list->current != NULL)
+	headObjInList(map->all_obj);
+	while(map->all_obj->current != NULL)
 	{
-		if(list->current->object->type == TYPE_PLAYER)
+		if(map->all_obj->current->object->type == TYPE_PLAYER)
 		{
-			playerEventHandler(list->current->object);
+			playerEventHandler(map->all_obj->current->object);
 		}
-		nextObjInList(list);
+		nextObjInList(map->all_obj);
 	}
-	headObjInList(list);
+	headObjInList(map->all_obj);
 	return 0;
 }
 
@@ -499,18 +499,18 @@ void nearbyCalculator(Obj *obj)
  * Обнуляет перемещение всех объектов из списка
  * Следует применять в конце каждого цикла отрисовки
  */
-void movingClear(ObjList *list)
+void movingClear(Map *map)
 {
-	headObjInList(list);
-	while(list->current != NULL)
+	headObjInList(map->movable_obj);
+	while(map->movable_obj->current != NULL)
 	{
-		list->current->object->moving.x = 0;
-		list->current->object->moving.y = 0;
-		list->current->object->x_speed = 0;
-		list->current->object->y_speed = 0;
-		nextObjInList(list);
+		map->movable_obj->current->object->moving.x = 0;
+		map->movable_obj->current->object->moving.y = 0;
+		map->movable_obj->current->object->x_speed = 0;
+		map->movable_obj->current->object->y_speed = 0;
+		nextObjInList(map->movable_obj);
 	}
-	headObjInList(list);
+	headObjInList(map->movable_obj);
 }
 
 
@@ -753,24 +753,24 @@ int touchingCalculator(Obj *donor, Obj *acceptor)
 /**
  * Принимает список объектов на карте и просчитывает их касания с игроком
  */
-void touchingHandler(ObjList *objlist, ObjList *movable)
+void touchingHandler(Map *map)
 {
-	headObjInList(movable);
-	while(movable->current != NULL)
+	headObjInList(map->movable_obj);
+	while(map->movable_obj->current != NULL)
 	{
-		Obj *someone = movable->current->object;
+		Obj *someone = map->movable_obj->current->object;
 		int dx = 0;
 		int dy = 0;
-		headObjInList(objlist);
-		while(objlist->current != NULL)
+		headObjInList(map->all_obj);
+		while(map->all_obj->current != NULL)
 		{
-			Obj *cur = objlist->current->object;
+			Obj *cur = map->all_obj->current->object;
 
 			//не просчитываем касания для слишком отдалённых друг от друга предметов
 			if((cur != someone)&(getDistance(&someone->box, &cur->box) < 3*BLOCK_SIZE))
 			{
 				int *correct = Touch(someone, cur, touchingCalculator(someone, cur));
-//				if((correct[1]!=0)||(correct[0]!=0)) printf("correct: %i, %i\n", correct[0], correct[1]);
+				if((correct[1]!=0)||(correct[0]!=0)) printf("correct: (%i, %i)\n", correct[0], correct[1]);
 
 				if(((correct[0] > dx)&(dx>0))||((correct[0] < dx)&(dx<0))||(dx == 0)) dx = correct[0];
 				if(((correct[1] > dy)&(dy>0))||((correct[1] < dy)&(dy<0))||(dy == 0)) dy = correct[1];
@@ -779,12 +779,12 @@ void touchingHandler(ObjList *objlist, ObjList *movable)
 
 
 			}
-			nextObjInList(objlist);
+			nextObjInList(map->all_obj);
 		}
-//		if((dx!=0)||(dy!=0)) printf("totally correct: %i, %i\n", dx, dy);
+		if((dx!=0)||(dy!=0)) printf("totally correct: (%i, %i)\n", dx, dy);
 		someone->box.x += dx;
 		someone->box.y += dy;
-		nextObjInList(movable);
+		nextObjInList(map->movable_obj);
 	}
 }
 

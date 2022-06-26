@@ -7,24 +7,36 @@
 #include "player.h"
 #include "enemies.h"
 
-ObjList *mapLoad(SDL_Renderer *rend)
+
+Map *initMap()
 {
-	FILE *map = fopen("maps/binmap.bin", "rb");
-	ObjList *new_map = calloc(1, sizeof(ObjList));
-	if (map == NULL) printf("No open\n");
+	Map *new_map = malloc(sizeof(Map));
+	new_map->all_obj = initObjList();
+	new_map->movable_obj = initObjList();
+	new_map->controlled_obj = initObjList();
+	new_map->player = NULL;
+	return new_map;
+}
+
+
+Map *mapLoad(SDL_Renderer *rend)
+{
+	FILE *map_file = fopen("maps/binmap.bin", "rb");
+	Map *new_map = initMap();
+	if (map_file == NULL) printf("No open\n");
 	else
 	{
 		short *width = calloc(1, 2);
 		short *height = calloc(1, 1);
 		short *block_code = calloc(1, 1);
 
-		fread(width, 2, 1, map);
-		fread(height, 1, 1, map);
+		fread(width, 2, 1, map_file);
+		fread(height, 1, 1, map_file);
 		for(int i=0;i<*height;i++)
 		{
 			for(int j=0;j<*width;j++)
 			{
-				fread(block_code, 1, 1, map);
+				fread(block_code, 1, 1, map_file);
 				char *path;
 				int type;
 				int go_out = 0;
@@ -40,11 +52,15 @@ ObjList *mapLoad(SDL_Renderer *rend)
 					break;
 				case PLAYER_CODE:;
 					Obj *player = initPlayer(rend, j*BLOCK_SIZE, i*BLOCK_SIZE);
-					addObjInList(new_map, player);
+					addObjInList(new_map->all_obj, player);
+					addObjInList(new_map->movable_obj, player);
+					new_map->player = player;
 					continue;
 				case MARIO_CODE:;
 					Obj *mario = initMario(rend, j*BLOCK_SIZE, i*BLOCK_SIZE);
-					addObjInList(new_map, mario);
+					addObjInList(new_map->all_obj, mario);
+					addObjInList(new_map->movable_obj, mario);
+					addObjInList(new_map->controlled_obj, mario);
 					continue;
 				case 255:
 					continue;
@@ -59,11 +75,11 @@ ObjList *mapLoad(SDL_Renderer *rend)
 				block_box.w = BLOCK_SIZE;
 				ObjAnim *tex = initObjAnim(rend, path, NULL);
 				Obj *block = initObject(block_box, tex, type);
-				addObjInList(new_map, block);
+				addObjInList(new_map->all_obj, block);
 			}
 		}
-		fclose(map);
-		printf("Загружена карта %dx%d\n", width[0], height[0]);
+		fclose(map_file);
+		printf("Load map %dx%d\n", width[0], height[0]);
 	}
 	return new_map;
 }
@@ -107,18 +123,18 @@ ObjList *getMovable(ObjList *map)
 
 
 
-int mapRender(ObjList *map, SDL_Renderer *rend)
+int mapRender(Map *map, SDL_Renderer *rend)
 {
-	headObjInList(map);
-	while(map->current != NULL)
+	headObjInList(map->all_obj);
+	while(map->all_obj->current != NULL)
 	{
-		Obj *cur_obj = map->current->object;
+		Obj *cur_obj = map->all_obj->current->object;
 		SDL_RenderCopyEx(rend, cur_obj->animation->texture, cur_obj->animation->tex_box,
 				&cur_obj->box, cur_obj->animation->angle, NULL, cur_obj->animation->flip);
-		nextObjInList(map);
+		nextObjInList(map->all_obj);
 
 	}
-	headObjInList(map);
+	headObjInList(map->all_obj);
 	return 0;
 }
 
@@ -126,18 +142,18 @@ int mapRender(ObjList *map, SDL_Renderer *rend)
 /**
  * Двигает карту по оси x на заданную величину
  */
-void moveMap(ObjList *map, int dx)
+void moveMap(Map *map, int dx)
 {
-	headObjInList(map);
-	while(map->current != NULL)
+	headObjInList(map->all_obj);
+	while(map->all_obj->current != NULL)
 	{
-		map->current->object->box.x += dx;
-		nextObjInList(map);
+		map->all_obj->current->object->box.x += dx;
+		nextObjInList(map->all_obj);
 	}
 }
 
 
-void trackThePlayer(ObjList *map, Obj *player)
+void trackThePlayer(Map *map, Obj *player)
 {
 	int dx = player->box.x + player->box.w/2 - SCREEN_WIDTH/2;
 	if(dx > 0) moveMap(map, -dx);

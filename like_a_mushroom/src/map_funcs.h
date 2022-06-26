@@ -10,7 +10,9 @@
 #define MAP1_TIME 300
 
 
-ObjList *mapLoad(SDL_Renderer *rend);
+Map *initMap();
+
+Map *mapLoad(SDL_Renderer *rend);
 
 
 Obj *getPlayer(ObjList *map);
@@ -19,12 +21,12 @@ Obj *getPlayer(ObjList *map);
 ObjList *getMovable(ObjList *map);
 
 
-int mapRender(ObjList *map, SDL_Renderer *rend);
+int mapRender(Map *map, SDL_Renderer *rend);
 
 
-void moveMap(ObjList *map, int dx);
+void moveMap(Map *map, int dx);
 
 
-void trackThePlayer(ObjList *map, Obj *player);
+void trackThePlayer(Map *map, Obj *player);
 
 #endif

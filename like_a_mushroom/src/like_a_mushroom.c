@@ -78,27 +78,26 @@ int main(int argc, char *argv[]) {
 	StatusBar *bar = initStatusBar(1, 1, 300, rend);
 
 	/*
-	 * Загружаем карту и получаем указатель на структуру объекта-игрока
+	 * Загружаем карту
 	 */
-	ObjList *g_map = mapLoad(rend);
-	Obj *player = getPlayer(g_map); //Получение объекта игрока на карте
-	ObjList *movable = getMovable(g_map);
+	Map *g_map = mapLoad(rend);
 
 
-	addEventInList(player->events, GRAVITATION);
+
+	addEventInList(g_map->player->events, GRAVITATION);
 //	long int last_frame = 0;
 
 	long int start_game_moment = clock();
-	while (!controlHandler(player))
+	while (!controlHandler(g_map->player))
 	{
-		nearbyCalculator(player);
+		nearbyCalculator(g_map->player);
 
 		eventHandler(g_map);
 
-		movingCalculator(player);
+		movingCalculator(g_map->player);
 
 //		printf("start handle touches\n");
-		touchingHandler(g_map, movable);
+		touchingHandler(g_map);
 //		printf("complete handle touches\n");
 
 		SDL_RenderClear(rend);
@@ -109,7 +108,7 @@ int main(int argc, char *argv[]) {
 //		printf("Частота кадров: %f кадров/сек\n", 1000/dt);
 //		last_frame = clock();
 
-		trackThePlayer(g_map, player);
+		trackThePlayer(g_map, g_map->player);
 		movingClear(g_map);
 		/*
 		 * выставляем для всех объектов анимации, соответствующие их состоянию
