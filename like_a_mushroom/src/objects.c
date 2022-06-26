@@ -40,8 +40,8 @@ Obj *initObject(SDL_Rect obj_box, ObjAnim *tex, int type)
 	new_object->y_speed = 0;
 	new_object->last_yspeed_upd = 0;
 	new_object->animation = tex;
-	new_object->last_xmove = clock();
-	new_object->last_ymove = clock();
+	new_object->last_xmove = clock() + 1000;
+	new_object->last_ymove = clock() + 1000;
 	new_object->events = initEventList();
 	new_object->type = type;
 	return new_object;
@@ -304,6 +304,20 @@ int delEventList(EventList *list)
 
 
 /**
+ * Накладывает событие на все объекты в списке
+ */
+void globalEvent(ObjList *objs, int event_code)
+{
+	headObjInList(objs);
+	while(objs->current != NULL)
+	{
+		addEventInList(objs->current->object->events, event_code);
+		nextObjInList(objs);
+	}
+	headObjInList(objs);
+}
+
+/**
  * Функция для обработки текущих анимаций объектов.
  * Выставляет и пересчитывает анимации объектов в зависимости от контекста
  */
@@ -318,6 +332,12 @@ int animationHandler(Map *map)
 			else if(eventInList(map->all_obj->current->object->events, RUN_LEFT)) updatePlayerRunAnim(map->all_obj->current->object, -1);
 			else updatePlayerStaticAnim(map->all_obj->current->object);
 			if(map->all_obj->current->object->objects_below->head == NULL) updatePlayerJumpAnim(map->all_obj->current->object);
+		}
+		if(map->all_obj->current->object->type == TYPE_MARIO)
+		{
+			if(eventInList(map->all_obj->current->object->events, RUN_RIGHT)) updateMarioRunAnim(map->all_obj->current->object, 1);
+			else if(eventInList(map->all_obj->current->object->events, RUN_LEFT)) updateMarioRunAnim(map->all_obj->current->object, -1);
+			else updateMarioStaticAnim(map->all_obj->current->object);
 		}
 		nextObjInList(map->all_obj);
 	}
@@ -338,6 +358,10 @@ int eventHandler(Map *map)
 		if(map->all_obj->current->object->type == TYPE_PLAYER)
 		{
 			playerEventHandler(map->all_obj->current->object);
+		}
+		if(map->all_obj->current->object->type == TYPE_MARIO)
+		{
+			marioEventHandler(map->all_obj->current->object);
 		}
 		nextObjInList(map->all_obj);
 	}
@@ -441,56 +465,62 @@ int *Touch(Obj *somebody, Obj* monolith, int touch_code)
 /**
  * Проверяет, касается ли один объект другого до сих пор
  */
-void nearbyCalculator(Obj *obj)
+void nearbyCalculator(ObjList *objs)
 {
-	ObjList *below = obj->objects_below;
-	ObjList *left = obj->objects_left;
-	ObjList *right = obj->objects_right;
-	ObjList *over = obj->objects_over;
-//	int count_b;
-	headObjInList(below);
-	while(below->current != NULL)
+	headObjInList(objs);
+	while(objs->current != NULL)
 	{
-//		count_b += 1;
-//		printf("below x_code: %i\n", below->current->object->box.x);
-		if(!((below->current->object->box.y == obj->box.y + obj->box.h)&(below->current->object->box.x > obj->box.x - below->current->object->box.w)&
-				(below->current->object->box.x < obj->box.x + obj->box.w))) delObjFromList(below);
-		else nextObjInList(below);
+		Obj *obj = objs->current->object;
+		ObjList *below = obj->objects_below;
+		ObjList *left = obj->objects_left;
+		ObjList *right = obj->objects_right;
+		ObjList *over = obj->objects_over;
+	//	int count_b;
+		headObjInList(below);
+		while(below->current != NULL)
+		{
+	//		count_b += 1;
+	//		printf("below x_code: %i\n", below->current->object->box.x);
+			if(!((below->current->object->box.y == obj->box.y + obj->box.h)&(below->current->object->box.x > obj->box.x - below->current->object->box.w)&
+					(below->current->object->box.x < obj->box.x + obj->box.w))) delObjFromList(below);
+			else nextObjInList(below);
 
-	}
-	headObjInList(below);
-	headObjInList(left);
-	while(left->current != NULL)
-	{
-//		printf("below x_code: %i\n", below->current->object->box.x);
-		if(!((left->current->object->box.x == obj->box.x - left->current->object->box.w)&(left->current->object->box.y + left->current->object->box.h > obj->box.y)&
-				(left->current->object->box.y < obj->box.y + obj->box.h))) delObjFromList(left);
-		else nextObjInList(left);
+		}
+		headObjInList(below);
+		headObjInList(left);
+		while(left->current != NULL)
+		{
+	//		printf("below x_code: %i\n", below->current->object->box.x);
+			if(!((left->current->object->box.x == obj->box.x - left->current->object->box.w)&(left->current->object->box.y + left->current->object->box.h > obj->box.y)&
+					(left->current->object->box.y < obj->box.y + obj->box.h))) delObjFromList(left);
+			else nextObjInList(left);
 
-	}
-	headObjInList(left);
-	headObjInList(right);
-	while(right->current != NULL)
-	{
-//		printf("below x_code: %i\n", below->current->object->box.x);
-		if(!((right->current->object->box.x == obj->box.x + obj->box.w)&(right->current->object->box.y + right->current->object->box.h > obj->box.y)&
-				(right->current->object->box.y < obj->box.y + obj->box.h))) delObjFromList(right);
-		else nextObjInList(right);
+		}
+		headObjInList(left);
+		headObjInList(right);
+		while(right->current != NULL)
+		{
+	//		printf("below x_code: %i\n", below->current->object->box.x);
+			if(!((right->current->object->box.x == obj->box.x + obj->box.w)&(right->current->object->box.y + right->current->object->box.h > obj->box.y)&
+					(right->current->object->box.y < obj->box.y + obj->box.h))) delObjFromList(right);
+			else nextObjInList(right);
 
-	}
-	headObjInList(right);
-	headObjInList(over);
-	while(over->current != NULL)
-	{
-//		count_b += 1;
-//		printf("below x_code: %i\n", below->current->object->box.x);
-		if(!((over->current->object->box.y + over->current->object->box.h == obj->box.y)&(over->current->object->box.x > obj->box.x - over->current->object->box.w)&
-				(over->current->object->box.x < obj->box.x + obj->box.w))) delObjFromList(over);
-		else nextObjInList(over);
+		}
+		headObjInList(right);
+		headObjInList(over);
+		while(over->current != NULL)
+		{
+	//		count_b += 1;
+	//		printf("below x_code: %i\n", below->current->object->box.x);
+			if(!((over->current->object->box.y + over->current->object->box.h == obj->box.y)&(over->current->object->box.x > obj->box.x - over->current->object->box.w)&
+					(over->current->object->box.x < obj->box.x + obj->box.w))) delObjFromList(over);
+			else nextObjInList(over);
 
+		}
+		headObjInList(over);
+	//	printf("Over count: %i\n", count_b);
+		nextObjInList(objs);
 	}
-	headObjInList(over);
-//	printf("Over count: %i\n", count_b);
 }
 
 
@@ -517,32 +547,38 @@ void movingClear(Map *map)
 /**
  * Придаёт объекту перемещение исходя из его скорости в данный момент времени
  */
-int movingCalculator(Obj *obj)
+int movingCalculator(ObjList *objs)
 {
-	long int time = clock();
-
-	float tempydt = (time - obj->last_ymove);
-	float ydt = tempydt/1000;
-	if(!(((obj->y_speed*ydt) < 1) & (obj->y_speed*ydt > -1) & (obj->y_speed != 0)))
+	headObjInList(objs);
+	while(objs->current != NULL)
 	{
-		obj->moving.y += obj->y_speed*ydt;
-		obj->last_ymove = clock();
-	}
-	else obj->moving.y += 0;
+		long int time = clock();
+		Obj *obj = objs->current->object;
+		float tempydt = (time - obj->last_ymove);
+		float ydt = tempydt/1000;
+		if(!(((obj->y_speed*ydt) < 1) & (obj->y_speed*ydt > -1) & (obj->y_speed != 0)))
+		{
+			obj->moving.y += obj->y_speed*ydt;
+			obj->last_ymove = clock();
+		}
+		else obj->moving.y += 0;
 
-	float tempxdt = (time - obj->last_xmove);
-	float xdt = tempxdt/1000;
-	if(!(((obj->x_speed*xdt) < 1) & (obj->x_speed*xdt > -1) & (obj->x_speed != 0)))
-	{
-		obj->moving.x += obj->x_speed*xdt;
-		obj->last_xmove = clock();
-	}
-	else obj->moving.x += 0;
+		float tempxdt = (time - obj->last_xmove);
+		float xdt = tempxdt/1000;
+		if(!(((obj->x_speed*xdt) < 1) & (obj->x_speed*xdt > -1) & (obj->x_speed != 0)))
+		{
+			obj->moving.x += obj->x_speed*xdt;
+			obj->last_xmove = clock();
+		}
+		else obj->moving.x += 0;
 
-	if((obj->objects_below->head == NULL)&(obj->moving.y > 0)) obj->box.y += obj->moving.y;
-	if((obj->objects_over->head == NULL)&(obj->moving.y < 0)) obj->box.y += obj->moving.y;
-	if((obj->objects_left->head == NULL)&(obj->moving.x < 0)) obj->box.x += obj->moving.x;
-	if((obj->objects_right->head == NULL)&(obj->moving.x > 0)) obj->box.x += obj->moving.x;
+		if((obj->objects_below->head == NULL)&(obj->moving.y > 0)) obj->box.y += obj->moving.y;
+		if((obj->objects_over->head == NULL)&(obj->moving.y < 0)) obj->box.y += obj->moving.y;
+		if((obj->objects_left->head == NULL)&(obj->moving.x < 0)) obj->box.x += obj->moving.x;
+		if((obj->objects_right->head == NULL)&(obj->moving.x > 0)) obj->box.x += obj->moving.x;
+
+		nextObjInList(objs);
+	}
 	return 0;
 }
 

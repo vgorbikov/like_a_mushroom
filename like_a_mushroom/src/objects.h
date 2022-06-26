@@ -224,6 +224,9 @@ int delEventList(EventList *list);
 
 int eventInList(EventList *list, int event_code);
 
+
+void globalEvent(ObjList *objs, int event_code);
+
 /*
  * Функции - обработчики
  */
@@ -237,7 +240,7 @@ int eventHandler(Map *map);
 void movingClear(Map *map);
 
 
-void nearbyCalculator(Obj *obj);
+void nearbyCalculator(ObjList *objs);
 
 
 int gravitation(Obj *obj);
@@ -260,6 +263,7 @@ int touchingCalculator(Obj *obj1, Obj *obj2);
 
 void touchingHandler(Map *map);
 
-int movingCalculator(Obj *obj);
+
+int movingCalculator(ObjList *objs);
 
 #endif

@@ -18,6 +18,7 @@
 #include "map_funcs.h"
 #include "player.h"
 #include "status_bar.h"
+#include "enemies.h"
 
 
 SDL_Window *initWindow(int WIDTH, int HEIGHT)
@@ -83,18 +84,18 @@ int main(int argc, char *argv[]) {
 	Map *g_map = mapLoad(rend);
 
 
-
-	addEventInList(g_map->player->events, GRAVITATION);
+	globalEvent(g_map->movable_obj, GRAVITATION);
 //	long int last_frame = 0;
 
 	long int start_game_moment = clock();
 	while (!controlHandler(g_map->player))
 	{
-		nearbyCalculator(g_map->player);
+		nearbyCalculator(g_map->movable_obj);
+		enemiesControl(g_map->controlled_obj);
 
 		eventHandler(g_map);
 
-		movingCalculator(g_map->player);
+		movingCalculator(g_map->movable_obj);
 
 //		printf("start handle touches\n");
 		touchingHandler(g_map);
