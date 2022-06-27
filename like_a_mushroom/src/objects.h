@@ -157,10 +157,12 @@ typedef struct ObjList
 
 typedef struct Map
 {
+	int world, room;
 	ObjList *all_obj;
 	ObjList *movable_obj;
 	ObjList *controlled_obj;
 	Obj *player;
+	SDL_Texture *bg_tex;
 } Map;
 
 
@@ -241,6 +243,9 @@ int eventHandler(Map *map);
 
 
 void movingClear(Map *map);
+
+
+void setLastMoveTime(ObjList *objs);
 
 
 void nearbyCalculator(ObjList *objs);

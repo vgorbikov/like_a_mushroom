@@ -40,8 +40,8 @@ Obj *initObject(SDL_Rect obj_box, ObjAnim *tex, int type)
 	new_object->y_speed = 0;
 	new_object->last_yspeed_upd = 0;
 	new_object->animation = tex;
-	new_object->last_xmove = clock() + 1500;
-	new_object->last_ymove = clock() + 1500;
+	new_object->last_xmove = clock();
+	new_object->last_ymove = clock();
 	new_object->events = initEventList();
 	new_object->type = type;
 	return new_object;
@@ -551,6 +551,24 @@ void movingClear(Map *map)
 		nextObjInList(map->movable_obj);
 	}
 	headObjInList(map->movable_obj);
+}
+
+/**
+ * Обновляет время последнего перемещения для всех объектов в спискее
+ * Применяется перед запуском игрового цикла для корректной обработки начального положения объектов
+ */
+void setLastMoveTime(ObjList *objs)
+{
+	headObjInList(objs);
+	while(objs->current != NULL)
+	{
+		long int now = clock();
+		objs->current->object->last_xmove = now;
+		objs->current->object->last_ymove = now;
+		objs->current->object->last_yspeed_upd = now;
+		nextObjInList(objs);
+	}
+	headObjInList(objs);
 }
 
 

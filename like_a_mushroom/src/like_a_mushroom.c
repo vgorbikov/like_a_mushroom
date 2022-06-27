@@ -19,7 +19,13 @@
 #include "player.h"
 #include "status_bar.h"
 #include "enemies.h"
+#include "menu.h"
 
+
+#define EXIT_CODE 1
+#define PLAY_CODE 2
+#define OPTIONS_CODE 3
+#define MAIN_MENU_CODE 4
 
 SDL_Window *initWindow(int WIDTH, int HEIGHT)
 {
@@ -35,7 +41,7 @@ SDL_Window *initWindow(int WIDTH, int HEIGHT)
 }
 
 
-SDL_bool controlHandler(Obj *player)
+SDL_bool gameControlHandler(Obj *player)
 {
 	SDL_Event event;
 	while (SDL_PollEvent(&event))
@@ -64,63 +70,66 @@ SDL_bool controlHandler(Obj *player)
 }
 
 
-int main(int argc, char *argv[]) {
-	setvbuf(stdout, NULL, _IONBF, 0);
-	setvbuf(stderr, NULL, _IONBF, 0);
+int menuControlHandler(MainMenu *mmenu)
+{
+	SDL_Event event;
+	while (SDL_PollEvent(&event))
+	{
+		switch (event.type)
+		{
+			case SDL_QUIT:
+				return EXIT_CODE;
+				break;
+			case SDL_KEYDOWN:
+				if(event.key.keysym.sym == SDLK_RETURN)
+				{
+					if(mmenu->current_pos == 0) return PLAY_CODE;
+					if(mmenu->current_pos == 1) return OPTIONS_CODE;
+					if(mmenu->current_pos == 2) return EXIT_CODE;
+				}
+				if((event.key.keysym.sym == SDLK_UP)&(mmenu->current_pos > 0)) mmenu->current_pos -= 1;
+				if((event.key.keysym.sym == SDLK_DOWN)&(mmenu->current_pos < 2)) mmenu->current_pos += 1;
+				if(event.key.keysym.sym == SDLK_ESCAPE) return PLAY_CODE;
+				break;
+		}
+	}
+	return 0;
+}
 
-	/*
-	 * Инициализируем окно программы и объект рендера
-	 */
-	SDL_Window *window = initWindow(SCREEN_WIDTH, SCREEN_HEIGHT);
-	SDL_Renderer *rend = NULL;
-	SDL_Texture *background = NULL;
-	rend = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-	background = IMG_LoadTexture(rend, "textures/background.bmp");
-	StatusBar *bar = initStatusBar(1, 1, 300, rend);
 
-	/*
-	 * Загружаем карту
-	 */
-	Map *g_map = mapLoad(rend);
-
-
+void gameLoop(SDL_Renderer *rend, Map *g_map)
+{
+	StatusBar *bar = initStatusBar(g_map->world, g_map->room, 300, rend);
 	globalEvent(g_map->movable_obj, GRAVITATION);
-//	long int last_frame = 0;
 
+//	long int last_frame = 0;
 	long int start_game_moment = clock();
-	while (!controlHandler(g_map->player))
+
+	setLastMoveTime(g_map->all_obj);
+	while (!gameControlHandler(g_map->player))
 	{
 		nearbyCalculator(g_map->movable_obj);
+
 		enemiesControl(g_map->controlled_obj);
 
 		eventHandler(g_map);
 
 		movingCalculator(g_map->movable_obj);
 
-//		printf("start handle touches\n");
 		touchingHandler(g_map);
-//		printf("complete handle touches\n");
 
 		SDL_RenderClear(rend);
-		SDL_RenderCopy(rend, background, NULL, NULL);
-
 
 //		float dt = clock() - last_frame;
 //		printf("Частота кадров: %f кадров/сек\n", 1000/dt);
 //		last_frame = clock();
 
 		trackThePlayer(g_map, g_map->player);
+
 		movingClear(g_map);
-		/*
-		 * выставляем для всех объектов анимации, соответствующие их состоянию
-		 */
+
 		animationHandler(g_map);
 
-
-//		printf("Start render\n");
-		/*
-		 * Отправляем все объекты на карте на отрисовку
-		 */
 		mapRender(g_map, rend);
 
 		long int cur_t = MAP1_TIME - (clock() - start_game_moment)/1000;
@@ -133,7 +142,48 @@ int main(int argc, char *argv[]) {
 		SDL_RenderPresent(rend);
 		SDL_Delay(1);
 	}
-	SDL_DestroyTexture(background);
+}
+
+
+int menuLoop(SDL_Renderer *rend, MainMenu *mmenu)
+{
+	int menu_event_code;
+	while(1)
+	{
+		menu_event_code = menuControlHandler(mmenu);
+		if(menu_event_code != 0) return menu_event_code;
+		SDL_RenderClear(rend);
+		addToRenderMainMenu(mmenu, rend, SCREEN_WIDTH, SCREEN_HEIGHT);
+		SDL_RenderPresent(rend);
+		SDL_Delay(1);
+	}
+	return 0;
+}
+
+
+int main(int argc, char *argv[]) {
+	setvbuf(stdout, NULL, _IONBF, 0);
+	setvbuf(stderr, NULL, _IONBF, 0);
+
+	/*
+	 * Инициализируем окно программы и объект рендера
+	 */
+	SDL_Window *window = initWindow(SCREEN_WIDTH, SCREEN_HEIGHT);
+	SDL_Renderer *rend = NULL;
+	rend = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+	MainMenu *mmenu = initMainMenu(rend);
+
+	Map *g_map = mapLoad(rend, 1, 1);
+
+	int menu_event_code;
+	while(1)
+	{
+		menu_event_code = menuLoop(rend, mmenu);
+		if(menu_event_code == 1) break;
+		if(menu_event_code == 2) gameLoop(rend, g_map);
+	}
+
+
 	SDL_DestroyRenderer(rend);
 	SDL_DestroyWindow(window);
 

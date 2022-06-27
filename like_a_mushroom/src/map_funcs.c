@@ -19,10 +19,16 @@ Map *initMap()
 }
 
 
-Map *mapLoad(SDL_Renderer *rend)
+Map *mapLoad(SDL_Renderer *rend, int world, int room)
 {
-	FILE *map_file = fopen("maps/binmap.bin", "rb");
+	char buf[100];
+	sprintf(buf, "maps/map%i_%i.bin", world, room);
+	FILE *map_file = fopen(buf, "rb");
 	Map *new_map = initMap();
+	sprintf(buf, "maps/background%i_%i.bmp", world, room);
+	new_map->bg_tex = IMG_LoadTexture(rend, buf);
+	new_map->world = world;
+	new_map->room = room;
 	if (map_file == NULL) printf("No open\n");
 	else
 	{
@@ -133,6 +139,7 @@ ObjList *getMovable(ObjList *map)
 
 int mapRender(Map *map, SDL_Renderer *rend)
 {
+	SDL_RenderCopy(rend, map->bg_tex, NULL, NULL);
 	headObjInList(map->all_obj);
 	while(map->all_obj->current != NULL)
 	{

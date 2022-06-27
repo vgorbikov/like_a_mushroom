@@ -12,7 +12,7 @@
 
 Map *initMap();
 
-Map *mapLoad(SDL_Renderer *rend);
+Map *mapLoad(SDL_Renderer *rend, int world, int room);
 
 
 Obj *getPlayer(ObjList *map);
