@@ -16,8 +16,8 @@ Obj *initMario(SDL_Renderer *rend, int x, int y)
 	SDL_Rect *mTexBox = malloc(sizeof(SDL_Rect));
 	mTexBox->x = 0;
 	mTexBox->y = 0;
-	mTexBox->w = 520;
-	mTexBox->h = 640;
+	mTexBox->w = 100;
+	mTexBox->h = 100;
 	ObjAnim *marioAnim = initObjAnim(rend, MARIO_TEXTURE, mTexBox);
 //	printf("Mario Texture OK\n");
 	SDL_Rect marioBox;
@@ -49,9 +49,9 @@ void updateMarioRunAnim(Obj *obj, int direction)
 		obj->animation->status = RUN_STATUS;
 	}
 	long int pres_time = clock();
-	int frame = 2 + ((pres_time - obj->animation->start_moment)*6/MARIO_RUN_ANIMATION_DURATION)%7;
-	obj->animation->tex_box->x = (obj->animation->tex_box->w + 5)*frame;
-	if(direction > 0) obj->animation->flip = SDL_FLIP_HORIZONTAL;
+	int frame = 1 + ((pres_time - obj->animation->start_moment)*5/MARIO_RUN_ANIMATION_DURATION)%6;
+	obj->animation->tex_box->x = (obj->animation->tex_box->w)*frame;
+	if(direction < 0) obj->animation->flip = SDL_FLIP_HORIZONTAL;
 	else obj->animation->flip = SDL_FLIP_NONE;
 }
 
@@ -78,7 +78,7 @@ void updateMarioJumpAnim(Obj *obj)
 		obj->animation->start_moment= clock();
 		obj->animation->status = JUMP_STATUS;
 	}
-	obj->animation->tex_box->x = 520;
+	obj->animation->tex_box->x = 700;
 }
 
 

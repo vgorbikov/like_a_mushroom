@@ -332,6 +332,7 @@ int animationHandler(Map *map)
 			else if(eventInList(map->all_obj->current->object->events, RUN_LEFT)) updatePlayerRunAnim(map->all_obj->current->object, -1);
 			else updatePlayerStaticAnim(map->all_obj->current->object);
 			if(map->all_obj->current->object->objects_below->head == NULL) updatePlayerJumpAnim(map->all_obj->current->object);
+			if(eventInList(map->all_obj->current->object->events, DEATH)) updatePlayerDeathAnim(map->all_obj->current->object);
 		}
 		if(map->all_obj->current->object->type == TYPE_MARIO)
 		{

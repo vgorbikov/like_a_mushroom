@@ -13,6 +13,8 @@ void updatePlayerStaticAnim(Obj *obj);
 
 void updatePlayerJumpAnim(Obj *obj);
 
+void updatePlayerDeathAnim(Obj *obj);
+
 void playerDeath(Obj *player);
 
 int playerTouch(Obj *player, Obj* obj, int touch_code);

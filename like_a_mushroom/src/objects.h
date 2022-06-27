@@ -17,8 +17,8 @@
  */
 #define STONE_TEXTURE "textures/stone.png"
 #define WOOD_TEXTURE "textures/wood.png"
-#define PLAYER_TEXTURE "textures/player_anim.png"
-#define MARIO_TEXTURE "textures/mario4.png"
+#define PLAYER_TEXTURE "textures/player.png"
+#define MARIO_TEXTURE "textures/mario.png"
 
 
 /*

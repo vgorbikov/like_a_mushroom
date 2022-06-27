@@ -83,6 +83,16 @@ void updatePlayerJumpAnim(Obj *obj)
 }
 
 
+void updatePlayerDeathAnim(Obj *obj)
+{
+	if(obj->animation->status != JUMP_STATUS)
+	{
+		obj->animation->start_moment= clock();
+		obj->animation->status = JUMP_STATUS;
+	}
+	obj->animation->tex_box->x = 800;
+}
+
 void playerDeath(Obj *player)
 {
 	if(player->objects_below != NULL)
