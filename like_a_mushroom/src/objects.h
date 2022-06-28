@@ -56,6 +56,7 @@
 #define GRAVITATION 4
 #define DEATH 5
 #define RELOAD 6
+#define DELETE 7
 
 /**
  * Некоторые псевдофизические переменные
@@ -172,7 +173,13 @@ ObjEvent *initEvent(int event_code);
 ObjAnim *initObjAnim(SDL_Renderer *rend, char *path, SDL_Rect *rect);
 
 
+void delObjAnimation(ObjAnim *anim);
+
+
 Obj *initObject(SDL_Rect obj_box, ObjAnim *tex, int type);
+
+
+void delObject(Obj *obj);
 
 
 /*

@@ -24,6 +24,13 @@ ObjAnim *initObjAnim(SDL_Renderer *rend, char *path, SDL_Rect *rect)
 }
 
 
+void delObjAnimation(ObjAnim *anim)
+{
+	SDL_DestroyTexture(anim->texture);
+	free(anim->tex_box);
+	free(anim);
+}
+
 ObjEvent *initEvent(int event_code)
 {
 	ObjEvent *event = calloc(1, sizeof(ObjEvent));
@@ -31,6 +38,7 @@ ObjEvent *initEvent(int event_code)
 	event->event_code = event_code;
 	return event;
 }
+
 
 
 Obj *initObject(SDL_Rect obj_box, ObjAnim *tex, int type)
@@ -48,6 +56,18 @@ Obj *initObject(SDL_Rect obj_box, ObjAnim *tex, int type)
 	return new_object;
 }
 
+
+void delObject(Obj *obj)
+{
+	delObjAnimation(obj->animation);
+	free(obj->objects_below);
+	free(obj->objects_over);
+	free(obj->objects_left);
+	free(obj->objects_right);
+	free(obj->events);
+	free(obj);
+	obj = NULL;
+}
 
 /**
  * Возвращает элемент-обёртку списка.
@@ -140,12 +160,36 @@ int delObjFromList(ObjList *list)
 
 
 /**
+ * Удаляет из списка указанный объект
+ */
+int delObjFromListByAddress(ObjList *list, Obj *obj)
+{
+	//printf("Deep deleting\n");
+	if(list->current != NULL)
+	{
+		if(list->current->prev != NULL) list->current->prev->next = list->current->next;
+		if(list->current->next != NULL) list->current->next->prev = list->current->prev;
+		if(list->current == list->head) list->head = list->current->next;
+		OLE *new_cur = list->current->next;
+		if(list->current != NULL) free(list->current);
+		list->current = new_cur;
+	//printf("Deep deleting Done\n");
+	}
+	return 0;
+}
+
+
+/**
  * Удаляет список объектов
  */
 int delObjList(ObjList *list)
 {
 	headObjInList(list);
-	while(list->head != NULL) delObjFromList(list);
+	while(list->current != NULL)
+	{
+		if(list->current->object != NULL) delObject(list->current->object);
+		delObjFromList(list);
+	}
 	if(list != NULL) free(list);
 	return 0;
 }
@@ -298,7 +342,10 @@ int delEventFromList(EventList *list, int event_code)
 int delEventList(EventList *list)
 {
 	headEventInList(list);
-	while(list->head != NULL) delEventFromList(list, 0);
+	while(list->head != NULL)
+	{
+		delEventFromList(list, 0);
+	}
 	if(list != NULL) free(list);
 	return 0;
 }
@@ -340,6 +387,7 @@ int animationHandler(Map *map)
 			if(eventInList(map->all_obj->current->object->events, RUN_RIGHT)) updateMarioRunAnim(map->all_obj->current->object, 1);
 			else if(eventInList(map->all_obj->current->object->events, RUN_LEFT)) updateMarioRunAnim(map->all_obj->current->object, -1);
 			else updateMarioStaticAnim(map->all_obj->current->object);
+			if(eventInList(map->all_obj->current->object->events, DEATH)) updateMarioDeathAnim(map->all_obj->current->object);
 		}
 		nextObjInList(map->all_obj);
 	}

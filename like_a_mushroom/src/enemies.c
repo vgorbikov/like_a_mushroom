@@ -81,6 +81,28 @@ void updateMarioJumpAnim(Obj *obj)
 }
 
 
+void updateMarioDeathAnim(Obj *obj)
+{
+	obj->animation->tex_box->x = 0;
+	obj->box.h = BLOCK_SIZE/2;
+
+}
+
+
+
+void marioDeath(Obj *mario)
+{
+	if(clock() - mario->events->current->event->start_moment > 1000)
+	{
+		printf("ENEMU DEATH\n");
+		addEventInList(mario->events, DELETE);
+		delEventFromList(mario->events, DEATH);
+		if(eventInList(mario->events, RUN_LEFT)) delEventFromList(mario->events, RUN_LEFT);
+		if(eventInList(mario->events, RUN_RIGHT)) delEventFromList(mario->events, RUN_RIGHT);
+	}
+}
+
+
 /**
  * Обработчик событий для объектов типа TYPE_PLAYER
  */

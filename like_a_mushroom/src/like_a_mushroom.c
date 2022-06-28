@@ -278,6 +278,11 @@ int main(int argc, char *argv[]) {
 			}
 			Map *g_map = mapLoad(rend, 1, 1, conf);
 			menu_event_code = gameLoop(rend, conf, g_map, bar);
+			delObjList(g_map->all_obj);
+			delObjList(g_map->controlled_obj);
+			delObjList(g_map->movable_obj);
+			SDL_DestroyTexture(g_map->bg_tex);
+			delObject(g_map->player);
 		}
 		if(menu_event_code == OPTIONS_CODE) menu_event_code = optionsMenuLoop(rend, omenu, conf);
 	}
