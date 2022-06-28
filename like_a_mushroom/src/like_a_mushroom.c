@@ -68,6 +68,7 @@ int gameControlHandler(Obj *player, int control_type)
 					if(event.key.keysym.sym == SDLK_a) addEventInList(player->events, RUN_LEFT);
 					if((event.key.keysym.sym == SDLK_w)&(player->objects_below->head != NULL)) addEventInList(player->events, JUMP);
 				}
+				if(event.key.keysym.sym == SDLK_ESCAPE) return MAIN_MENU_CODE;
 				break;
 			case SDL_KEYUP:
 				if(control_type == ARROWS_CONTROL)
@@ -159,8 +160,11 @@ int gameLoop(SDL_Renderer *rend, ConfigParam *conf, Map *g_map, StatusBar *bar)
 	long int start_game_moment = clock();
 
 	setLastMoveTime(g_map->all_obj);
-	while (!gameControlHandler(g_map->player, conf->control_type))
+	int code = 0;
+	while (1)
 	{
+		code = gameControlHandler(g_map->player, conf->control_type);
+		if(code != 0) return code;
 		nearbyCalculator(g_map->movable_obj);
 
 		enemiesControl(g_map->controlled_obj);
@@ -285,6 +289,7 @@ int main(int argc, char *argv[]) {
 			Map *g_map = mapLoad(rend, 1, 1, conf);
 			menu_event_code = gameLoop(rend, conf, g_map, bar);
 			delObjList(g_map->all_obj);
+			clearObjList(g_map->all_obj);
 			clearObjList(g_map->controlled_obj);
 			free(g_map->controlled_obj);
 			clearObjList(g_map->movable_obj);
