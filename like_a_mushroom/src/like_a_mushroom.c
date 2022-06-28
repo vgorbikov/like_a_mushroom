@@ -45,7 +45,7 @@ SDL_Window *initWindow(int WIDTH, int HEIGHT)
 }
 
 
-int gameControlHandler(Obj *player)
+int gameControlHandler(Obj *player, int control_type)
 {
 	SDL_Event event;
 	while (SDL_PollEvent(&event))
@@ -56,17 +56,30 @@ int gameControlHandler(Obj *player)
 				return 1;
 				break;
 			case SDL_KEYDOWN:
-				if(event.key.keysym.sym == SDLK_RIGHT) addEventInList(player->events, RUN_RIGHT);
-				if(event.key.keysym.sym == SDLK_LEFT) addEventInList(player->events, RUN_LEFT);
-				if(event.key.keysym.sym == SDLK_UP)
+				if(control_type == ARROWS_CONTROL)
 				{
-					if(player->objects_below->head != NULL) addEventInList(player->events, JUMP);
+					if(event.key.keysym.sym == SDLK_RIGHT) addEventInList(player->events, RUN_RIGHT);
+					if(event.key.keysym.sym == SDLK_LEFT) addEventInList(player->events, RUN_LEFT);
+					if((event.key.keysym.sym == SDLK_UP)&(player->objects_below->head != NULL)) addEventInList(player->events, JUMP);
 				}
-				if(event.key.keysym.sym == SDLK_1) addEventInList(player->events, DEATH);
+				if(control_type == WASD_CONTROL)
+				{
+					if(event.key.keysym.sym == SDLK_d) addEventInList(player->events, RUN_RIGHT);
+					if(event.key.keysym.sym == SDLK_a) addEventInList(player->events, RUN_LEFT);
+					if((event.key.keysym.sym == SDLK_w)&(player->objects_below->head != NULL)) addEventInList(player->events, JUMP);
+				}
 				break;
 			case SDL_KEYUP:
-				if(event.key.keysym.sym == SDLK_RIGHT) delEventFromList(player->events, RUN_RIGHT);
-				if(event.key.keysym.sym == SDLK_LEFT) delEventFromList(player->events, RUN_LEFT);
+				if(control_type == ARROWS_CONTROL)
+				{
+					if(event.key.keysym.sym == SDLK_RIGHT) delEventFromList(player->events, RUN_RIGHT);
+					if(event.key.keysym.sym == SDLK_LEFT) delEventFromList(player->events, RUN_LEFT);
+				}
+				if(control_type == WASD_CONTROL)
+				{
+					if(event.key.keysym.sym == SDLK_d) delEventFromList(player->events, RUN_RIGHT);
+					if(event.key.keysym.sym == SDLK_a) delEventFromList(player->events, RUN_LEFT);
+				}
 				break;
 		}
 	}
@@ -137,22 +150,29 @@ int optionsControlHandler(OptionsMenu *omenu, ConfigParam *conf)
 }
 
 
-int gameLoop(SDL_Renderer *rend, Map *g_map)
+int gameLoop(SDL_Renderer *rend, ConfigParam *conf, Map *g_map, StatusBar *bar)
 {
-	StatusBar *bar = initStatusBar(g_map->world, g_map->room, 300, rend);
+
 	globalEvent(g_map->movable_obj, GRAVITATION);
 
 //	long int last_frame = 0;
 	long int start_game_moment = clock();
 
 	setLastMoveTime(g_map->all_obj);
-	while (!gameControlHandler(g_map->player))
+	while (!gameControlHandler(g_map->player, conf->control_type))
 	{
 		nearbyCalculator(g_map->movable_obj);
 
 		enemiesControl(g_map->controlled_obj);
 
-		eventHandler(g_map);
+		int code = eventHandler(g_map);
+		if(code == RELOAD)
+		{
+			printf("%i\n", code);
+			bar->lives -= 1;
+			updateBarLivesTex(bar, rend);
+			return RELOAD;
+		}
 
 		movingCalculator(g_map->movable_obj);
 
@@ -238,22 +258,28 @@ int main(int argc, char *argv[]) {
 	OptionsMenu *omenu = initOptionsMenu(rend, conf);
 
 
-	Map *g_map = mapLoad(rend, 1, 1, conf);
+	StatusBar *bar = initStatusBar(1, 1, 300, 3, rend);
 
-
-	int menu_event_code = 0;
+	int menu_event_code = MAIN_MENU_CODE;
 	while(menu_event_code != EXIT_CODE)
 	{
-		menu_event_code = mainMenuLoop(rend, mmenu);
 		if(menu_event_code == EXIT_CODE) break;
-		if(menu_event_code == PLAY_CODE)
+		if(menu_event_code == MAIN_MENU_CODE) menu_event_code = mainMenuLoop(rend, mmenu);
+		if((menu_event_code == PLAY_CODE)||(menu_event_code == RELOAD))
 		{
-			menu_event_code = gameLoop(rend, g_map);
+			if(bar->lives == 0)
+			{
+				bar->coins = 0;
+				bar->score = 0;
+				bar->lives = 3;
+				updateBarCoinsTex(bar, rend);
+				updateBarScoreTex(bar, rend);
+				updateBarLivesTex(bar, rend);
+			}
+			Map *g_map = mapLoad(rend, 1, 1, conf);
+			menu_event_code = gameLoop(rend, conf, g_map, bar);
 		}
-		if(menu_event_code == OPTIONS_CODE)
-		{
-			menu_event_code = optionsMenuLoop(rend, omenu, conf);
-		}
+		if(menu_event_code == OPTIONS_CODE) menu_event_code = optionsMenuLoop(rend, omenu, conf);
 	}
 
 

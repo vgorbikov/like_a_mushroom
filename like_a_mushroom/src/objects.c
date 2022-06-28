@@ -11,7 +11,6 @@
 #include "player.h"
 #include "enemies.h"
 
-
 ObjAnim *initObjAnim(SDL_Renderer *rend, char *path, SDL_Rect *rect)
 {
 	ObjAnim *obj_tex = malloc(sizeof(ObjAnim));
@@ -360,7 +359,8 @@ int eventHandler(Map *map)
 	{
 		if(map->all_obj->current->object->type == TYPE_PLAYER)
 		{
-			playerEventHandler(map->all_obj->current->object);
+			int code = playerEventHandler(map->all_obj->current->object);
+			if(code == RELOAD) return RELOAD;
 		}
 		if(map->all_obj->current->object->type == TYPE_MARIO)
 		{

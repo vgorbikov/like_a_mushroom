@@ -135,7 +135,7 @@ OptionsMenu *initOptionsMenu(SDL_Renderer *rend, ConfigParam *conf)
 {
 	OptionsMenu *omenu = malloc(sizeof(OptionsMenu));
 	omenu->font = TTF_OpenFont("textures/main_font.ttf", 40);
-	omenu->menu_bg = IMG_LoadTexture(rend, "textures/menu/main_menu_bg.png");
+	omenu->menu_bg = IMG_LoadTexture(rend, "textures/menu/options_menu_bg.png");
 	omenu->select_rect = IMG_LoadTexture(rend, "textures/menu/select_rect.jpg");
 	omenu->txt_color = malloc(sizeof(SDL_Color));
 	omenu->bg_color = malloc(sizeof(SDL_Color));

@@ -4,9 +4,9 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include <SDL_ttf.h>
+#include "status_bar.h"
 #include "objects.h"
 #include "player.h"
-#include "status_bar.h"
 
 /**
  * Возвращает объект типа "TYPE_PLAYER"
@@ -18,7 +18,7 @@ Obj *initPlayer(SDL_Renderer *rend, int x, int y, int skin_code)
 	pTexBox->y = 0;
 	pTexBox->w = 100;
 	pTexBox->h = 100;
-	char *buf[100];
+	char buf[100];
 	sprintf(buf, "textures/player/player_%i.png", skin_code);
 	ObjAnim *playerAnim = initObjAnim(rend, buf, pTexBox);
 //	printf("Texture OK\n");
@@ -100,11 +100,17 @@ void playerDeath(Obj *player)
 	if(player->objects_below != NULL)
 	{
 		Jump(player, 300);
-//		if(eventInList(player->events, RUN_RIGHT)) delEventFromList(player->events, RUN_RIGHT);
 		delObjList(player->objects_below);
 		player->objects_below = initObjList();
 	}
+	if(clock() - player->events->current->event->start_moment > 1500)
+	{
+		printf("ADD RELOAD\n");
+		addEventInList(player->events, RELOAD);
+		delEventFromList(player->events, DEATH);
+	}
 }
+
 
 
 /**
@@ -134,6 +140,7 @@ int playerEventHandler(Obj *player)
 		if(event->event_code == JUMP)  Jump(player, PLAYER_JUMP_SPEED);
 		if(event->event_code == GRAVITATION)  gravitation(player);
 		if(event->event_code == DEATH)  playerDeath(player);
+		if(event->event_code == RELOAD)  return RELOAD;
 		nextEventInList(player->events);
 	}
 	headEventInList(player->events);

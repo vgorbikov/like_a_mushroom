@@ -21,9 +21,17 @@ typedef struct StatusBar
 } StatusBar;
 
 
-StatusBar *initStatusBar(int world, int room, int time, SDL_Renderer *rend);
+StatusBar *initStatusBar(int world, int room, int time, int lives, SDL_Renderer *rend);
 
 void updateBarTimeTex(StatusBar *bar, SDL_Renderer *rend);
+
+void updateBarScoreTex(StatusBar *bar, SDL_Renderer *rend);
+
+void updateBarCoinsTex(StatusBar *bar, SDL_Renderer *rend);
+
+void updateBarLivesTex(StatusBar *bar, SDL_Renderer *rend);
+
+void updateBarWorldTex(StatusBar *bar, SDL_Renderer *rend);
 
 void addSBarToRender(StatusBar *bar, SDL_Renderer *rend, int screen_w, int screen_h);
 

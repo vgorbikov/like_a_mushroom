@@ -55,6 +55,7 @@
 #define JUMP 3
 #define GRAVITATION 4
 #define DEATH 5
+#define RELOAD 6
 
 /**
  * Некоторые псевдофизические переменные
