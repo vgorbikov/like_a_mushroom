@@ -2,10 +2,12 @@
 #include <stdlib.h>
 #include <SDL.h>
 #include <SDL_image.h>
+#include <SDL_ttf.h>
 #include "objects.h"
-#include "map_funcs.h"
 #include "player.h"
 #include "enemies.h"
+#include "menu.h"
+#include "map_funcs.h"
 
 
 Map *initMap()
@@ -19,7 +21,7 @@ Map *initMap()
 }
 
 
-Map *mapLoad(SDL_Renderer *rend, int world, int room)
+Map *mapLoad(SDL_Renderer *rend, int world, int room, ConfigParam *conf)
 {
 	char buf[100];
 	sprintf(buf, "maps/map%i_%i.bin", world, room);
@@ -57,7 +59,7 @@ Map *mapLoad(SDL_Renderer *rend, int world, int room)
 					type = TYPE_MONOLITH;
 					break;
 				case PLAYER_CODE:;
-					Obj *player = initPlayer(rend, j*BLOCK_SIZE, i*BLOCK_SIZE);
+					Obj *player = initPlayer(rend, j*BLOCK_SIZE, i*BLOCK_SIZE, conf->player_skin);
 //					addObjInList(new_map->all_obj, player);
 					addObjInList(new_map->movable_obj, player);
 					new_map->player = player;

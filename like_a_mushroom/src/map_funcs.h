@@ -2,6 +2,7 @@
 #define map_funcs
 
 
+
 #define RENDERING_AREA_HEIGHT 28
 #define RENDERING_AREA_WIDTH 47
 #define SCREEN_WIDTH 1280
@@ -12,7 +13,7 @@
 
 Map *initMap();
 
-Map *mapLoad(SDL_Renderer *rend, int world, int room);
+Map *mapLoad(SDL_Renderer *rend, int world, int room, ConfigParam *conf);
 
 
 Obj *getPlayer(ObjList *map);

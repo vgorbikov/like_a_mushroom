@@ -15,17 +15,21 @@
 #include <SDL_ttf.h>
 #include <time.h>
 #include "objects.h"
-#include "map_funcs.h"
+#include "menu.h"
 #include "player.h"
 #include "status_bar.h"
 #include "enemies.h"
-#include "menu.h"
+#include "map_funcs.h"
+
 
 
 #define EXIT_CODE 1
 #define PLAY_CODE 2
 #define OPTIONS_CODE 3
 #define MAIN_MENU_CODE 4
+
+#define WASD_CONTROL 0
+#define ARROWS_CONTROL 1
 
 SDL_Window *initWindow(int WIDTH, int HEIGHT)
 {
@@ -41,7 +45,7 @@ SDL_Window *initWindow(int WIDTH, int HEIGHT)
 }
 
 
-SDL_bool gameControlHandler(Obj *player)
+int gameControlHandler(Obj *player)
 {
 	SDL_Event event;
 	while (SDL_PollEvent(&event))
@@ -49,7 +53,7 @@ SDL_bool gameControlHandler(Obj *player)
 		switch (event.type)
 		{
 			case SDL_QUIT:
-				return SDL_TRUE;
+				return 1;
 				break;
 			case SDL_KEYDOWN:
 				if(event.key.keysym.sym == SDLK_RIGHT) addEventInList(player->events, RUN_RIGHT);
@@ -66,7 +70,7 @@ SDL_bool gameControlHandler(Obj *player)
 				break;
 		}
 	}
-	return SDL_FALSE;
+	return 0;
 }
 
 
@@ -87,9 +91,8 @@ int menuControlHandler(MainMenu *mmenu)
 					if(mmenu->current_pos == 1) return OPTIONS_CODE;
 					if(mmenu->current_pos == 2) return EXIT_CODE;
 				}
-				if((event.key.keysym.sym == SDLK_UP)&(mmenu->current_pos > 0)) mmenu->current_pos -= 1;
-				if((event.key.keysym.sym == SDLK_DOWN)&(mmenu->current_pos < 2)) mmenu->current_pos += 1;
-				if(event.key.keysym.sym == SDLK_ESCAPE) return PLAY_CODE;
+				if(((event.key.keysym.sym == SDLK_UP)||(event.key.keysym.sym == SDLK_w))&(mmenu->current_pos > 0)) mmenu->current_pos -= 1;
+				if(((event.key.keysym.sym == SDLK_DOWN)||(event.key.keysym.sym == SDLK_s))&(mmenu->current_pos < 2)) mmenu->current_pos += 1;
 				break;
 		}
 	}
@@ -97,7 +100,44 @@ int menuControlHandler(MainMenu *mmenu)
 }
 
 
-void gameLoop(SDL_Renderer *rend, Map *g_map)
+int optionsControlHandler(OptionsMenu *omenu, ConfigParam *conf)
+{
+	SDL_Event event;
+	while (SDL_PollEvent(&event))
+	{
+		switch (event.type)
+		{
+			case SDL_QUIT:
+				return EXIT_CODE;
+				break;
+			case SDL_KEYDOWN:
+				if(((event.key.keysym.sym == SDLK_UP)||(event.key.keysym.sym == SDLK_w))&(omenu->current_pos > 0)) omenu->current_pos -= 1;
+				if(((event.key.keysym.sym == SDLK_DOWN)||(event.key.keysym.sym == SDLK_s))&(omenu->current_pos < 2)) omenu->current_pos += 1;
+				if(omenu->current_pos == 0)
+				{
+					if(((event.key.keysym.sym == SDLK_RIGHT)||(event.key.keysym.sym == SDLK_d))&(omenu->skin < 2)) omenu->skin += 1;
+					if(((event.key.keysym.sym == SDLK_LEFT)||(event.key.keysym.sym == SDLK_a))&(omenu->skin > 0)) omenu->skin -= 1;
+				}
+				if(omenu->current_pos == 1)
+				{
+					if(((event.key.keysym.sym == SDLK_RIGHT)||(event.key.keysym.sym == SDLK_d))&(omenu->control < 1)) omenu->control += 1;
+					if(((event.key.keysym.sym == SDLK_LEFT)||(event.key.keysym.sym == SDLK_a))&(omenu->control > 0)) omenu->control -= 1;
+				}
+				if((omenu->current_pos == 2)&(event.key.keysym.sym == SDLK_RETURN))
+				{
+					conf->player_skin = omenu->skin;
+					conf->control_type = omenu->control;
+					updateConfigFile(conf);
+					return MAIN_MENU_CODE;
+				}
+				break;
+		}
+	}
+	return 0;
+}
+
+
+int gameLoop(SDL_Renderer *rend, Map *g_map)
 {
 	StatusBar *bar = initStatusBar(g_map->world, g_map->room, 300, rend);
 	globalEvent(g_map->movable_obj, GRAVITATION);
@@ -142,10 +182,29 @@ void gameLoop(SDL_Renderer *rend, Map *g_map)
 		SDL_RenderPresent(rend);
 		SDL_Delay(1);
 	}
+	return 1;
 }
 
 
-int menuLoop(SDL_Renderer *rend, MainMenu *mmenu)
+
+int optionsMenuLoop(SDL_Renderer *rend, OptionsMenu *omenu, ConfigParam *conf)
+{
+	int menu_event_code;
+	while(1)
+	{
+		menu_event_code = optionsControlHandler(omenu, conf);
+		if(menu_event_code != 0) return menu_event_code;
+		SDL_RenderClear(rend);
+		addToRenderOptionsMenu(omenu, rend, SCREEN_WIDTH, SCREEN_HEIGHT);
+		SDL_RenderPresent(rend);
+		SDL_Delay(1);
+	}
+	return 0;
+}
+
+
+
+int mainMenuLoop(SDL_Renderer *rend, MainMenu *mmenu)
 {
 	int menu_event_code;
 	while(1)
@@ -161,6 +220,8 @@ int menuLoop(SDL_Renderer *rend, MainMenu *mmenu)
 }
 
 
+
+
 int main(int argc, char *argv[]) {
 	setvbuf(stdout, NULL, _IONBF, 0);
 	setvbuf(stderr, NULL, _IONBF, 0);
@@ -171,16 +232,28 @@ int main(int argc, char *argv[]) {
 	SDL_Window *window = initWindow(SCREEN_WIDTH, SCREEN_HEIGHT);
 	SDL_Renderer *rend = NULL;
 	rend = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+
 	MainMenu *mmenu = initMainMenu(rend);
+	ConfigParam *conf = getConfigFromFile();
+	OptionsMenu *omenu = initOptionsMenu(rend, conf);
 
-	Map *g_map = mapLoad(rend, 1, 1);
 
-	int menu_event_code;
-	while(1)
+	Map *g_map = mapLoad(rend, 1, 1, conf);
+
+
+	int menu_event_code = 0;
+	while(menu_event_code != EXIT_CODE)
 	{
-		menu_event_code = menuLoop(rend, mmenu);
-		if(menu_event_code == 1) break;
-		if(menu_event_code == 2) gameLoop(rend, g_map);
+		menu_event_code = mainMenuLoop(rend, mmenu);
+		if(menu_event_code == EXIT_CODE) break;
+		if(menu_event_code == PLAY_CODE)
+		{
+			menu_event_code = gameLoop(rend, g_map);
+		}
+		if(menu_event_code == OPTIONS_CODE)
+		{
+			menu_event_code = optionsMenuLoop(rend, omenu, conf);
+		}
 	}
 
 

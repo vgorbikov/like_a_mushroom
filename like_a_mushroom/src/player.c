@@ -11,14 +11,16 @@
 /**
  * Возвращает объект типа "TYPE_PLAYER"
  */
-Obj *initPlayer(SDL_Renderer *rend, int x, int y)
+Obj *initPlayer(SDL_Renderer *rend, int x, int y, int skin_code)
 {
 	SDL_Rect *pTexBox = malloc(sizeof(SDL_Rect));
 	pTexBox->x = 0;
 	pTexBox->y = 0;
 	pTexBox->w = 100;
 	pTexBox->h = 100;
-	ObjAnim *playerAnim = initObjAnim(rend, PLAYER_TEXTURE, pTexBox);
+	char *buf[100];
+	sprintf(buf, "textures/player/player_%i.png", skin_code);
+	ObjAnim *playerAnim = initObjAnim(rend, buf, pTexBox);
 //	printf("Texture OK\n");
 	SDL_Rect playerBox;
 	playerBox.x = x;

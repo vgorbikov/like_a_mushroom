@@ -4,7 +4,9 @@
 #include <math.h>
 #include <SDL.h>
 #include <SDL_image.h>
+#include <SDL_ttf.h>
 #include "objects.h"
+#include "menu.h"
 #include "map_funcs.h"
 #include "player.h"
 #include "enemies.h"

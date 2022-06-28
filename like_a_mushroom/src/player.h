@@ -5,7 +5,7 @@
 #define PLAYER_RUN_ANIMATION_DURATION 500
 #define PLAYER_JUMP_SPEED 700
 
-Obj *initPlayer(SDL_Renderer *rend, int x, int y);
+Obj *initPlayer(SDL_Renderer *rend, int x, int y, int skin_code);
 
 void updatePlayerRunAnim(Obj *obj, int direction);
 
