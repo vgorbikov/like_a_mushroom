@@ -8,11 +8,11 @@
 
 
 
-StatusBar *initStatusBar(int world, int room, int time, int lives, SDL_Renderer *rend)
+StatusBar *initStatusBar(int world, int room, int time, int lives, int score,  SDL_Renderer *rend)
 {
 	StatusBar *bar = malloc(sizeof(StatusBar));
 	bar->coins = 0;
-	bar->score = 2500;
+	bar->score = score;
 	bar->world = world;
 	bar->room = room;
 	bar->lives = lives;

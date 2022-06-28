@@ -14,10 +14,10 @@
 #include <SDL_image.h>
 #include <SDL_ttf.h>
 #include <time.h>
+#include "status_bar.h"
 #include "objects.h"
 #include "menu.h"
 #include "player.h"
-#include "status_bar.h"
 #include "enemies.h"
 #include "map_funcs.h"
 
@@ -168,11 +168,17 @@ int gameLoop(SDL_Renderer *rend, ConfigParam *conf, Map *g_map, StatusBar *bar)
 		int code = eventHandler(g_map);
 		if(code == RELOAD)
 		{
-			printf("%i\n", code);
 			bar->lives -= 1;
 			updateBarLivesTex(bar, rend);
 			return RELOAD;
 		}
+		if(code == DELETE)
+		{
+			bar->score += 100;
+			updateBarScoreTex(bar, rend);
+			printf("+++\n");
+		}
+
 
 		movingCalculator(g_map->movable_obj);
 
@@ -258,7 +264,7 @@ int main(int argc, char *argv[]) {
 	OptionsMenu *omenu = initOptionsMenu(rend, conf);
 
 
-	StatusBar *bar = initStatusBar(1, 1, 300, 3, rend);
+	StatusBar *bar = initStatusBar(1, 1, 300, 3, 0, rend);
 
 	int menu_event_code = MAIN_MENU_CODE;
 	while(menu_event_code != EXIT_CODE)
@@ -279,10 +285,12 @@ int main(int argc, char *argv[]) {
 			Map *g_map = mapLoad(rend, 1, 1, conf);
 			menu_event_code = gameLoop(rend, conf, g_map, bar);
 			delObjList(g_map->all_obj);
-			delObjList(g_map->controlled_obj);
-			delObjList(g_map->movable_obj);
+			clearObjList(g_map->controlled_obj);
+			free(g_map->controlled_obj);
+			clearObjList(g_map->movable_obj);
+			free(g_map->movable_obj);
 			SDL_DestroyTexture(g_map->bg_tex);
-			delObject(g_map->player);
+//			delObject(g_map->player);
 		}
 		if(menu_event_code == OPTIONS_CODE) menu_event_code = optionsMenuLoop(rend, omenu, conf);
 	}

@@ -85,6 +85,7 @@ void updateMarioDeathAnim(Obj *obj)
 {
 	obj->animation->tex_box->x = 0;
 	obj->box.h = BLOCK_SIZE/2;
+	if(obj->objects_below->head != NULL) obj->box.y = obj->objects_below->head->object->box.y - BLOCK_SIZE/2;
 
 }
 
@@ -92,13 +93,14 @@ void updateMarioDeathAnim(Obj *obj)
 
 void marioDeath(Obj *mario)
 {
-	if(clock() - mario->events->current->event->start_moment > 1000)
+	printf("ENEMU DEATH\n");
+	clearObjList(mario->objects_right);
+	clearObjList(mario->objects_left);
+	clearObjList(mario->objects_over);
+	if(clock() - mario->events->current->event->start_moment > 500)
 	{
-		printf("ENEMU DEATH\n");
 		addEventInList(mario->events, DELETE);
 		delEventFromList(mario->events, DEATH);
-		if(eventInList(mario->events, RUN_LEFT)) delEventFromList(mario->events, RUN_LEFT);
-		if(eventInList(mario->events, RUN_RIGHT)) delEventFromList(mario->events, RUN_RIGHT);
 	}
 }
 
@@ -116,6 +118,12 @@ int marioEventHandler(Obj *mario)
 		if(event->event_code == RUN_LEFT)  Run(mario, -MARIO_RUN_SPEED);
 		if(event->event_code == JUMP)  Jump(mario, MARIO_JUMP_SPEED);
 		if(event->event_code == GRAVITATION)  gravitation(mario);
+		if(event->event_code == DEATH)
+		{
+			marioDeath(mario);
+			return DEATH;
+		}
+		if(event->event_code == DELETE)  return DELETE;
 		nextEventInList(mario->events);
 	}
 	headEventInList(mario->events);

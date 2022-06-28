@@ -204,6 +204,9 @@ void headObjInList(ObjList *list);
 int delObjFromList(ObjList *list);
 
 
+void clearObjList(ObjList *list);
+
+
 int delObjList(ObjList *list);
 
 

@@ -5,11 +5,13 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include <SDL_ttf.h>
+#include "status_bar.h"
 #include "objects.h"
 #include "menu.h"
 #include "map_funcs.h"
 #include "player.h"
 #include "enemies.h"
+
 
 ObjAnim *initObjAnim(SDL_Renderer *rend, char *path, SDL_Rect *rect)
 {
@@ -164,18 +166,28 @@ int delObjFromList(ObjList *list)
  */
 int delObjFromListByAddress(ObjList *list, Obj *obj)
 {
+	if(!objInList(list, obj)) return 0;
 	//printf("Deep deleting\n");
-	if(list->current != NULL)
+	headObjInList(list);
+	while((list->current->object != obj)&(list->current != NULL))
 	{
-		if(list->current->prev != NULL) list->current->prev->next = list->current->next;
-		if(list->current->next != NULL) list->current->next->prev = list->current->prev;
-		if(list->current == list->head) list->head = list->current->next;
-		OLE *new_cur = list->current->next;
-		if(list->current != NULL) free(list->current);
-		list->current = new_cur;
-	//printf("Deep deleting Done\n");
+		nextObjInList(list);
 	}
+	if(list->current != NULL) delObjFromList(list);
 	return 0;
+}
+
+
+void clearObjList(ObjList *list)
+{
+	headObjInList(list);
+	while(list->current != NULL)
+	{
+		if(list->current != NULL) free(list->current);
+		nextObjInList(list);
+	}
+	list->head = NULL;
+	list->current = NULL;
 }
 
 
@@ -408,11 +420,26 @@ int eventHandler(Map *map)
 		if(map->all_obj->current->object->type == TYPE_PLAYER)
 		{
 			int code = playerEventHandler(map->all_obj->current->object);
-			if(code == RELOAD) return RELOAD;
+			if(code == RELOAD)
+			{
+				return RELOAD;
+			}
 		}
 		if(map->all_obj->current->object->type == TYPE_MARIO)
 		{
-			marioEventHandler(map->all_obj->current->object);
+			int code = marioEventHandler(map->all_obj->current->object);
+			if(code == DEATH)
+			{
+				delObjFromListByAddress(map->movable_obj, map->all_obj->current->object);
+				delObjFromListByAddress(map->controlled_obj, map->all_obj->current->object);
+			}
+			if(code == DELETE)
+			{
+//				Obj *obj = map->all_obj->current->object;
+				delObjFromList(map->all_obj);
+				return DELETE;
+//				delObject(obj);
+			}
 		}
 		nextObjInList(map->all_obj);
 	}
@@ -539,6 +566,7 @@ void nearbyCalculator(ObjList *objs)
 		headObjInList(below);
 		while(below->current != NULL)
 		{
+			if(below->current->object == NULL) delObjFromList(below);
 	//		count_b += 1;
 	//		printf("below x_code: %i\n", below->current->object->box.x);
 			if(!((below->current->object->box.y == obj->box.y + obj->box.h)&(below->current->object->box.x > obj->box.x - below->current->object->box.w)&
@@ -550,6 +578,7 @@ void nearbyCalculator(ObjList *objs)
 		headObjInList(left);
 		while(left->current != NULL)
 		{
+			if(left->current->object == NULL) delObjFromList(left);
 	//		printf("below x_code: %i\n", below->current->object->box.x);
 			if(!((left->current->object->box.x == obj->box.x - left->current->object->box.w)&(left->current->object->box.y + left->current->object->box.h > obj->box.y)&
 					(left->current->object->box.y < obj->box.y + obj->box.h))) delObjFromList(left);
@@ -560,6 +589,7 @@ void nearbyCalculator(ObjList *objs)
 		headObjInList(right);
 		while(right->current != NULL)
 		{
+			if(right->current->object == NULL) delObjFromList(right);
 	//		printf("below x_code: %i\n", below->current->object->box.x);
 			if(!((right->current->object->box.x == obj->box.x + obj->box.w)&(right->current->object->box.y + right->current->object->box.h > obj->box.y)&
 					(right->current->object->box.y < obj->box.y + obj->box.h))) delObjFromList(right);
@@ -570,6 +600,7 @@ void nearbyCalculator(ObjList *objs)
 		headObjInList(over);
 		while(over->current != NULL)
 		{
+			if(over->current->object == NULL) delObjFromList(over);
 	//		count_b += 1;
 	//		printf("below x_code: %i\n", below->current->object->box.x);
 			if(!((over->current->object->box.y + over->current->object->box.h == obj->box.y)&(over->current->object->box.x > obj->box.x - over->current->object->box.w)&

@@ -101,11 +101,10 @@ void playerDeath(Obj *player)
 	if(player->objects_below != NULL)
 	{
 		Jump(player, 300);
-		headObjInList(player->objects_below);
-		while(player->objects_below->current != NULL)
-		{
-			delObjFromList(player->objects_below);
-		}
+		clearObjList(player->objects_below);
+		clearObjList(player->objects_right);
+		clearObjList(player->objects_left);
+		clearObjList(player->objects_over);
 	}
 	if(clock() - player->events->current->event->start_moment > 1500)
 	{
@@ -125,7 +124,12 @@ int playerTouch(Obj *player, Obj* obj, int touch_code)
 	if(obj->type == TYPE_MARIO)
 	{
 		if((touch_code == LEFT_TOUCH)||(touch_code == RIGHT_TOUCH)) addEventInList(player->events, DEATH);
-		if(touch_code == TOP_TOUCH) addEventInList(obj->events, DEATH);
+		if(touch_code == TOP_TOUCH)
+		{
+			printf("DEATH TOUCH\n");
+			addEventInList(obj->events, DEATH);
+			addEventInList(player->events, JUMP);
+		}
 	}
 	return 0;
 }
