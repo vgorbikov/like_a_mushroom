@@ -2,9 +2,15 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
+#if (defined(__MINGW64__) || defined(__MINGW32__))
 #include <SDL.h>
 #include <SDL_image.h>
 #include <SDL_ttf.h>
+#else
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
+#endif
 #include "status_bar.h"
 #include "objects.h"
 #include "menu.h"
@@ -471,10 +477,10 @@ int eventHandler(Map *map)
 			}
 			if(code == DELETE)
 			{
-//				Obj *obj = map->all_obj->current->object;
-				delObjFromList(map->all_obj);
+				Obj *obj = map->all_obj->current->object;
+				delObjFromListByAddress(map->all_obj, obj);
+				delObject(obj);
 				return DELETE;
-//				delObject(obj);
 			}
 		}
 		nextObjInList(map->all_obj);

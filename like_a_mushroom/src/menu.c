@@ -1,8 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
+#if (defined(__MINGW64__) || defined(__MINGW32__))
 #include <SDL.h>
 #include <SDL_image.h>
 #include <SDL_ttf.h>
+#else
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
+#endif
 #include "menu.h"
 
 
