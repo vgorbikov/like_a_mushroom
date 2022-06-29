@@ -55,6 +55,10 @@ Obj *initObject(SDL_Rect obj_box, ObjAnim *tex, int type)
 	new_object->last_ymove = clock();
 	new_object->events = initEventList();
 	new_object->type = type;
+	new_object->objects_below = NULL;
+	new_object->objects_over = NULL;
+	new_object->objects_left = NULL;
+	new_object->objects_right = NULL;
 	return new_object;
 }
 
@@ -62,11 +66,11 @@ Obj *initObject(SDL_Rect obj_box, ObjAnim *tex, int type)
 void delObject(Obj *obj)
 {
 	delObjAnimation(obj->animation);
-	free(obj->objects_below);
-	free(obj->objects_over);
-	free(obj->objects_left);
-	free(obj->objects_right);
-	free(obj->events);
+	delObjList(obj->objects_below);
+	delObjList(obj->objects_over);
+	delObjList(obj->objects_left);
+	delObjList(obj->objects_right);
+	delEventList(obj->events);
 	free(obj);
 	obj = NULL;
 }
@@ -143,9 +147,11 @@ void headObjInList(ObjList *list)
 
 /**
  * Удаляет текущий объект из списка
+ * (не удаляет сам объект)
  */
 int delObjFromList(ObjList *list)
 {
+	if(list == NULL) return 0;
 	//printf("Deep deleting\n");
 	if(list->current != NULL)
 	{
@@ -163,9 +169,11 @@ int delObjFromList(ObjList *list)
 
 /**
  * Удаляет из списка указанный объект
+ * (но не удаляет его из памяти)
  */
 int delObjFromListByAddress(ObjList *list, Obj *obj)
 {
+	if(list == NULL) return 0;
 	if(!objInList(list, obj)) return 0;
 	//printf("Deep deleting\n");
 	headObjInList(list);
@@ -178,24 +186,50 @@ int delObjFromListByAddress(ObjList *list, Obj *obj)
 }
 
 
-void clearObjList(ObjList *list)
+/**
+ * Очищает список объектов
+ * (не удаляет объекты  сам список)
+ */
+int clearObjList(ObjList *list)
 {
+	if(list == NULL) return 0;
 	headObjInList(list);
 	while(list->current != NULL)
 	{
-		if(list->current != NULL) free(list->current);
-		nextObjInList(list);
+		if(list->current != NULL) delObjFromList(list);
+//		nextObjInList(list);
 	}
 	list->head = NULL;
 	list->current = NULL;
+	return 0;
 }
 
 
 /**
  * Удаляет список объектов
+ * (не удаляет объекты)
  */
 int delObjList(ObjList *list)
 {
+	if(list == NULL) return 0;
+	headObjInList(list);
+	while(list->current != NULL)
+	{
+		delObjFromList(list);
+	}
+	if(list != NULL) free(list);
+	list = NULL;
+	return 0;
+}
+
+
+/**
+ * Удаляет список объектов
+ * (в том числе объекты)
+ */
+int delObjListDeep(ObjList *list)
+{
+	if(list == NULL) return 0;
 	headObjInList(list);
 	while(list->current != NULL)
 	{
@@ -203,6 +237,7 @@ int delObjList(ObjList *list)
 		delObjFromList(list);
 	}
 	if(list != NULL) free(list);
+	list = NULL;
 	return 0;
 }
 
@@ -327,10 +362,10 @@ int addEventInList(EventList *list, int event_code)
 int delEventFromList(EventList *list, int event_code)
 {
 	//printf("Deep deleting\n");
-	if(event_code != 0) headEventInList(list);
+	headEventInList(list);
 	while(list->current != NULL)
 	{
-		if((list->current != NULL)&(list->current->event->event_code == event_code))
+		if((list->current != NULL)&((list->current->event->event_code == event_code)||(event_code == 0)))
 		{
 			if(list->current->prev != NULL) list->current->prev->next = list->current->next;
 			if(list->current->next != NULL) list->current->next->prev = list->current->prev;
@@ -338,9 +373,9 @@ int delEventFromList(EventList *list, int event_code)
 			ELE *new_cur = list->current->next;
 			if(list->current != NULL) free(list->current);
 			list->current = new_cur;
+			continue;
 		//printf("Deep deleting Done\n");
 		}
-		if(event_code == 0) return 0;
 		if(list->current != NULL) if(list->current->event->event_code != event_code) nextEventInList(list);
 	}
 	headEventInList(list);
@@ -356,6 +391,7 @@ int delEventList(EventList *list)
 	headEventInList(list);
 	while(list->head != NULL)
 	{
+		free(list->current->event);
 		delEventFromList(list, 0);
 	}
 	if(list != NULL) free(list);

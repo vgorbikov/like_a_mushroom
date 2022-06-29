@@ -95,7 +95,6 @@ int updateConfigFile(ConfigParam *conf)
 	fprintf(conf_file, "%i\n", conf->control_type);
 	fprintf(conf_file, "%i\n", conf->player_skin);
 	fclose(conf_file);
-	printf("UPDATE!\n");
 	return 0;
 }
 

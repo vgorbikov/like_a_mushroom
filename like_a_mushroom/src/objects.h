@@ -204,10 +204,13 @@ void headObjInList(ObjList *list);
 int delObjFromList(ObjList *list);
 
 
-void clearObjList(ObjList *list);
+int clearObjList(ObjList *list);
 
 
 int delObjList(ObjList *list);
+
+
+int delObjListDeep(ObjList *list);
 
 
 int objInList(ObjList *list, Obj *obj);
