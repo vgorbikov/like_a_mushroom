@@ -100,7 +100,7 @@ void updateMarioDeathAnim(Obj *obj)
 
 void marioDeath(Obj *mario)
 {
-	printf("ENEMU DEATH\n");
+//	printf("ENEMU DEATH\n");
 	clearObjList(mario->objects_right);
 	clearObjList(mario->objects_left);
 	clearObjList(mario->objects_over);

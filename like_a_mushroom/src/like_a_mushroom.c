@@ -186,7 +186,7 @@ int gameLoop(SDL_Renderer *rend, ConfigParam *conf, Map *g_map, StatusBar *bar)
 		{
 			bar->score += 100;
 			updateBarScoreTex(bar, rend);
-			printf("+++\n");
+//			printf("+++\n");
 		}
 
 

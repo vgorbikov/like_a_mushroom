@@ -608,7 +608,16 @@ void nearbyCalculator(ObjList *objs)
 		headObjInList(below);
 		while(below->current != NULL)
 		{
-			if(below->current->object == NULL) delObjFromList(below);
+			if(below->current->object == NULL)
+			{
+				delObjFromList(below);
+				continue;
+			}
+			if(eventInList(below->current->object->events, DEATH))
+			{
+				delObjFromList(below);
+				continue;
+			}
 	//		count_b += 1;
 	//		printf("below x_code: %i\n", below->current->object->box.x);
 			if(!((below->current->object->box.y == obj->box.y + obj->box.h)&(below->current->object->box.x > obj->box.x - below->current->object->box.w)&
@@ -620,7 +629,16 @@ void nearbyCalculator(ObjList *objs)
 		headObjInList(left);
 		while(left->current != NULL)
 		{
-			if(left->current->object == NULL) delObjFromList(left);
+			if(left->current->object == NULL)
+			{
+				delObjFromList(left);
+				continue;
+			}
+			if(eventInList(left->current->object->events, DEATH))
+			{
+				delObjFromList(left);
+				continue;
+			}
 	//		printf("below x_code: %i\n", below->current->object->box.x);
 			if(!((left->current->object->box.x == obj->box.x - left->current->object->box.w)&(left->current->object->box.y + left->current->object->box.h > obj->box.y)&
 					(left->current->object->box.y < obj->box.y + obj->box.h))) delObjFromList(left);
@@ -631,7 +649,16 @@ void nearbyCalculator(ObjList *objs)
 		headObjInList(right);
 		while(right->current != NULL)
 		{
-			if(right->current->object == NULL) delObjFromList(right);
+			if(right->current->object == NULL)
+			{
+				delObjFromList(right);
+				continue;
+			}
+			if(eventInList(right->current->object->events, DEATH))
+			{
+				delObjFromList(right);
+				continue;
+			}
 	//		printf("below x_code: %i\n", below->current->object->box.x);
 			if(!((right->current->object->box.x == obj->box.x + obj->box.w)&(right->current->object->box.y + right->current->object->box.h > obj->box.y)&
 					(right->current->object->box.y < obj->box.y + obj->box.h))) delObjFromList(right);
@@ -642,7 +669,16 @@ void nearbyCalculator(ObjList *objs)
 		headObjInList(over);
 		while(over->current != NULL)
 		{
-			if(over->current->object == NULL) delObjFromList(over);
+			if(over->current->object == NULL)
+			{
+				delObjFromList(over);
+				continue;
+			}
+			if(eventInList(over->current->object->events, DEATH))
+			{
+				delObjFromList(over);
+				continue;
+			}
 	//		count_b += 1;
 	//		printf("below x_code: %i\n", below->current->object->box.x);
 			if(!((over->current->object->box.y + over->current->object->box.h == obj->box.y)&(over->current->object->box.x > obj->box.x - over->current->object->box.w)&
@@ -957,7 +993,16 @@ void touchingHandler(Map *map)
 		while(map->all_obj->current != NULL)
 		{
 			Obj *cur = map->all_obj->current->object;
-
+			if(cur == NULL)
+			{
+				nextObjInList(map->all_obj);
+				continue;
+			}
+			if(eventInList(cur->events, DEATH))
+			{
+				nextObjInList(map->all_obj);
+				continue;
+			}
 			//не просчитываем касания для слишком отдалённых друг от друга предметов
 			if((cur != someone)&(getDistance(&someone->box, &cur->box) < 3*BLOCK_SIZE)&(!eventInList(cur->events, DEATH)))
 			{
