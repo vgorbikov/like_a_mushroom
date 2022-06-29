@@ -33,7 +33,7 @@ StatusBar *initStatusBar(int world, int room, int time, int lives, int score,  S
 		{
 			load_surf = TTF_RenderText_Shaded(bar->font, "SCORE", *bar->txt_color, *bar->bg_color);
 			bar->score_tex = SDL_CreateTextureFromSurface(rend, load_surf);
-			free(load_surf);
+			SDL_FreeSurface(load_surf);
 			sprintf(buf, "%i", bar->score);
 			load_surf = TTF_RenderText_Shaded(bar->font, buf, *bar->txt_color, *bar->bg_color);
 			bar->score_counter_tex = SDL_CreateTextureFromSurface(rend, load_surf);
@@ -42,7 +42,7 @@ StatusBar *initStatusBar(int world, int room, int time, int lives, int score,  S
 		{
 			load_surf = TTF_RenderText_Shaded(bar->font, "COINS", *bar->txt_color, *bar->bg_color);
 			bar->coins_tex = SDL_CreateTextureFromSurface(rend, load_surf);
-			free(load_surf);
+			SDL_FreeSurface(load_surf);
 			sprintf(buf, "%i", bar->coins);
 			load_surf = TTF_RenderText_Shaded(bar->font, buf, *bar->txt_color, *bar->bg_color);
 			bar->coins_counter_tex = SDL_CreateTextureFromSurface(rend, load_surf);
@@ -51,7 +51,7 @@ StatusBar *initStatusBar(int world, int room, int time, int lives, int score,  S
 		{
 			load_surf = TTF_RenderText_Shaded(bar->font, "WORLD", *bar->txt_color, *bar->bg_color);
 			bar->world_tex = SDL_CreateTextureFromSurface(rend, load_surf);
-			free(load_surf);
+			SDL_FreeSurface(load_surf);
 			sprintf(buf, "%i-%i", bar->world, bar->room);
 			load_surf = TTF_RenderText_Shaded(bar->font, buf, *bar->txt_color, *bar->bg_color);
 			bar->world_counter_tex = SDL_CreateTextureFromSurface(rend, load_surf);
@@ -60,7 +60,7 @@ StatusBar *initStatusBar(int world, int room, int time, int lives, int score,  S
 		{
 			load_surf = TTF_RenderText_Shaded(bar->font, "TIME", *bar->txt_color, *bar->bg_color);
 			bar->time_tex = SDL_CreateTextureFromSurface(rend, load_surf);
-			free(load_surf);
+			SDL_FreeSurface(load_surf);
 			sprintf(buf, "%li", bar->time);
 			load_surf = TTF_RenderText_Shaded(bar->font, buf, *bar->txt_color, *bar->bg_color);
 			bar->time_counter_tex = SDL_CreateTextureFromSurface(rend, load_surf);
@@ -69,12 +69,12 @@ StatusBar *initStatusBar(int world, int room, int time, int lives, int score,  S
 		{
 			load_surf = TTF_RenderText_Shaded(bar->font, "LIVES", *bar->txt_color, *bar->bg_color);
 			bar->lives_tex = SDL_CreateTextureFromSurface(rend, load_surf);
-			free(load_surf);
+			SDL_FreeSurface(load_surf);
 			sprintf(buf, "%i", bar->lives);
 			load_surf = TTF_RenderText_Shaded(bar->font, buf, *bar->txt_color, *bar->bg_color);
 			bar->lives_counter_tex = SDL_CreateTextureFromSurface(rend, load_surf);
 		}
-		free(load_surf);
+		SDL_FreeSurface(load_surf);
 	}
 	return bar;
 }

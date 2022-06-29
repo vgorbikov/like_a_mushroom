@@ -29,21 +29,18 @@ MainMenu *initMainMenu(SDL_Renderer *rend)
 		{
 			load_surf = TTF_RenderText_Shaded(mmenu->font, "Play", *mmenu->txt_color, *mmenu->bg_color);
 			mmenu->pos1 = SDL_CreateTextureFromSurface(rend, load_surf);
-			free(load_surf);
 		}
 		if(i == 1)
 		{
 			load_surf = TTF_RenderText_Shaded(mmenu->font, "Options", *mmenu->txt_color, *mmenu->bg_color);
 			mmenu->pos2 = SDL_CreateTextureFromSurface(rend, load_surf);
-			free(load_surf);
 		}
 		if(i == 2)
 		{
 			load_surf = TTF_RenderText_Shaded(mmenu->font, "Exit", *mmenu->txt_color, *mmenu->bg_color);
 			mmenu->pos3 = SDL_CreateTextureFromSurface(rend, load_surf);
-			free(load_surf);
 		}
-		free(load_surf);
+		SDL_FreeSurface(load_surf);
 	}
 	mmenu->current_pos = 0;
 	return mmenu;
@@ -154,21 +151,18 @@ OptionsMenu *initOptionsMenu(SDL_Renderer *rend, ConfigParam *conf)
 		{
 			load_surf = TTF_RenderText_Shaded(omenu->font, "Control", *omenu->txt_color, *omenu->bg_color);
 			omenu->control_title = SDL_CreateTextureFromSurface(rend, load_surf);
-			free(load_surf);
 		}
 		if(i == 1)
 		{
 			load_surf = TTF_RenderText_Shaded(omenu->font, "Skin", *omenu->txt_color, *omenu->bg_color);
 			omenu->skin_title = SDL_CreateTextureFromSurface(rend, load_surf);
-			free(load_surf);
 		}
 		if(i == 2)
 		{
 			load_surf = TTF_RenderText_Shaded(omenu->font, "Save&close", *omenu->txt_color, *omenu->bg_color);
 			omenu->back_title = SDL_CreateTextureFromSurface(rend, load_surf);
-			free(load_surf);
 		}
-		free(load_surf);
+		SDL_FreeSurface(load_surf);
 	}
 	omenu->current_pos = 0;
 	omenu->skin = conf->player_skin;
