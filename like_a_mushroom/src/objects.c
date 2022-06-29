@@ -479,7 +479,7 @@ int eventHandler(Map *map)
 			{
 				Obj *obj = map->all_obj->current->object;
 				delObjFromListByAddress(map->all_obj, obj);
-				delObject(obj);
+//				delObject(obj);
 				return DELETE;
 			}
 		}
